@@ -274,7 +274,7 @@ export default function Board() {
       {players && players.length > 0 && (
         <LeaderBoard
           players={players}
-          userOwner={userOwner}
+          userOwner={userOwner?.ip_address}
           isOpen={openLeaderBoard}
           setOpen={handleCloseLeaderBoard}
         />
