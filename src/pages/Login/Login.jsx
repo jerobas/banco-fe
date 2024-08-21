@@ -58,7 +58,7 @@ export default function Login() {
   const handleLogin = async ({ name }) => {
     await ApiService.post("/users", { name: name }).then((response) => {
       if (response.status === 201) {
-        saveUserInStorage(name);
+        saveUserInStorage(JSON.stringify(response.data));
         navigate("/");
       }
     });

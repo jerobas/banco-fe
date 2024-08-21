@@ -1,11 +1,10 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { BsFillChatDotsFill, BsFillSendFill } from "react-icons/bs";
 import { useParams } from "react-router-dom";
 
 import Board from "../../components/Board/Board";
 import Layout from "../../components/Layout/Layout";
-import { getUserFromLocalStorage } from "../../services/Auth";
-import { socket } from "../../services/Auth";
+import { getUserFromLocalStorage, socket } from "../../services/Auth";
 import { globalTheme } from "../../styles/theme/global.theme";
 import { Styles } from "./Room.styles";
 
@@ -24,6 +23,7 @@ export default function Room() {
         { user: "System", message, system },
       ]);
     });
+
     return () => {};
   }, []);
 

@@ -3,7 +3,7 @@ import { FaLock } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 
 import Layout from "../../components/Layout/Layout";
-import { socket } from "../../services/Auth";
+import { socket, removeUserFromLastRoom } from "../../services/Auth";
 import { getUserFromLocalStorage } from "../../services/Auth";
 import CreateRoom from "../CreateRoom/CreateRoom";
 import JoinRoom from "../JoinRoom/JoinRoom";
@@ -76,6 +76,13 @@ export default function Rooms() {
       setIsVisible(false);
     }
   };
+
+  useEffect(() => {
+    const leaveRoom = async () => {
+      await removeUserFromLastRoom();
+    };
+    leaveRoom();
+  }, []);
 
   useEffect(() => {
     setSearchInput("");
