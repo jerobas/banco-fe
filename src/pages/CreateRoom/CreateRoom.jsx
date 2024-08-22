@@ -6,8 +6,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 
 import Modal from "../../components/Modal/Modal";
-import { getUserFromLocalStorage } from "../../services/Auth";
-import { socket } from "../../services/Auth";
 import { Column } from "../Rooms/Rooms.styles";
 import { Container, ErrorMessage } from "./CreateRoom.styles";
 import ApiService from "../../api/index";

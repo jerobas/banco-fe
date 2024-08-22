@@ -1,17 +1,16 @@
 import { useEffect, useState } from "react";
 import {
+  Navigate,
+  Route,
   BrowserRouter as Router,
   Routes,
-  Route,
-  Navigate,
 } from "react-router-dom";
 import { toast } from "react-toastify";
 
 import Login from "../pages/Login/Login";
 import Room from "../pages/Room/Room";
 import Rooms from "../pages/Rooms/Rooms";
-import { isAlreadyAuthenticated } from "../services/Auth";
-import { socket } from "../services/Auth";
+import { isAlreadyAuthenticated, socket } from "../services/Auth";
 
 const PrivateRoute = ({ element: Component, ...rest }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(null);
