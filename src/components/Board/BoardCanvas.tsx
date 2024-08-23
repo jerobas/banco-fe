@@ -1,17 +1,17 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import { socket } from "../../services/Auth";
-import {
-  drawBoard
-} from "../../utils/functions/movement";
+import { drawBoard } from "../../utils/functions/movement";
 import { BoardContainer } from "./BoardCanvas.styles";
 
 import Pawn from "../Pawn/Pawn";
+import LeaderboardModal from "../LeaderBoard/LeaderboardModal";
 
 interface BoardProps {
   boardSize: number;
   centerImageUrl: string;
 }
+
 
 const BoardCanvas: React.FC<BoardProps> = ({ boardSize, centerImageUrl }) => {
   const { id } = useParams();
@@ -22,6 +22,7 @@ const BoardCanvas: React.FC<BoardProps> = ({ boardSize, centerImageUrl }) => {
   const [ip, setIpOwner] = useState();
   const [currentTurn, setCurrentTurn] = useState<any>(0);
   const [visible, setVisible] = useState(false);
+  const [isModalOpen, setModalOpen] = useState(false);
 
   const [pawns, setPawns] = useState<any>();
 
@@ -48,6 +49,24 @@ const BoardCanvas: React.FC<BoardProps> = ({ boardSize, centerImageUrl }) => {
     const canvas = document.getElementById("lopoly-board") as HTMLCanvasElement;
     drawBoard(canvas, boardSize, centerImageUrl, 80);
   }, [boardSize, centerImageUrl]);
+
+  useEffect(() => {
+    const handleTabPress = (e: KeyboardEvent) => {
+      if (e.key === "Tab") {
+        toggleModal();
+        e.preventDefault();
+      }
+    };
+
+    document.addEventListener("keydown", handleTabPress);
+    return () => {
+      document.removeEventListener("keydown", handleTabPress);
+    };
+  }, []);
+
+  const toggleModal = () => {
+    setModalOpen(!isModalOpen);
+  };
 
   const pawnColors = {
     0: "red",
@@ -159,9 +178,14 @@ const BoardCanvas: React.FC<BoardProps> = ({ boardSize, centerImageUrl }) => {
       dices: [d1, d2],
     });
   };
-
+  
   return (
     <BoardContainer>
+      <LeaderboardModal
+        players={players}
+        isOpen={isModalOpen}
+        onClose={() => setModalOpen(false)}
+      />
       {!visible && userOwner?.ip_address === ip && (
         <button onClick={handleStartGame}>Start</button>
       )}

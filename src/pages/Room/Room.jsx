@@ -31,9 +31,9 @@ export default function Room() {
     //   </Styles.Container>
     // </Layout>
     <>
-      {/* <BoardCanvas boardSize={15} />
-      <Chat /> */}
-      <CardComponent />
+      <BoardCanvas boardSize={15} />
+      <Chat />
+      {/* <CardComponent /> */}
     </>
   );
 }
