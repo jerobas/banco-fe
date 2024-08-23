@@ -1,7 +1,6 @@
 export const drawBoard = (
   canvas: HTMLCanvasElement,
   boardSize: number,
-  centerImageUrl: string,
   cellSize: number
 ) => {
   const ctx = canvas.getContext("2d");
@@ -65,7 +64,7 @@ export const drawBoard = (
       centerSize - deckSize * 2
     );
   };
-  centerImage.src = centerImageUrl;
+  centerImage.src = 'centerImageUrl';
 };
 
 export const pawnColors = {

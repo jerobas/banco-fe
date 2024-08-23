@@ -24,11 +24,6 @@ export interface IPlayerDefaults {
   deleted_at: string | null;
 }
 
-export interface IBoardProps {
-  boardSize: number;
-  centerImageUrl: string;
-}
-
 export interface IPawnProps {
   color: string;
   position: { x: number; y: number };
@@ -59,4 +54,18 @@ export interface IRoom {
 export interface IPlayersStates {
   users: IPlayerDefaults[];
   currentTurn: IPlayerDefaults;
+}
+
+export interface ICardProps {
+  name: string;
+  description: string;
+  imageUrl: string;
+  type: string;
+  purchaseValue: number;
+  modifiers: string;
+  isTradable: boolean;
+  canAcceptModifiers: boolean;
+  rarityTier: number;
+  scalingLevel: number;
+  quantity: number;
 }

@@ -4,7 +4,6 @@ import { useNavigate } from "react-router-dom";
 
 import Layout from "../../components/Layout/Layout";
 import { socket, removeUserFromLastRoom } from "../../services/Auth";
-import { getUserFromLocalStorage } from "../../services/Auth";
 import CreateRoom from "../CreateRoom/CreateRoom";
 import JoinRoom from "../JoinRoom/JoinRoom";
 import {
@@ -18,8 +17,6 @@ import {
 
 export default function Rooms() {
   const navigate = useNavigate();
-
-  const user = getUserFromLocalStorage();
 
   const [searchInput, setSearchInput] = useState("");
   const [isVisible, setIsVisible] = useState(false);

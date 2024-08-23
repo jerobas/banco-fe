@@ -11,7 +11,6 @@ import { useConfigPosition } from "../../hooks/useConfigPosition";
 import { useResize } from "../../hooks/useResize";
 
 import {
-  IBoardProps,
   IGameStateUpdated,
   IPlayer,
   IPlayerDefaults,
@@ -19,7 +18,7 @@ import {
   IRoom,
 } from "../../interfaces";
 
-const BoardCanvas: React.FC<IBoardProps> = ({ boardSize, centerImageUrl }) => {
+const BoardCanvas: React.FC = () => {
   const { id } = useParams();
   const boardRef = useRef<HTMLCanvasElement>(null);
 
@@ -30,6 +29,7 @@ const BoardCanvas: React.FC<IBoardProps> = ({ boardSize, centerImageUrl }) => {
   const [currentTurn, setCurrentTurn] = useState<IPlayerDefaults>();
   const [visible, setVisible] = useState<boolean>(false);
   const [isModalOpen, setModalOpen] = useState<boolean>(false);
+  const [boardSize, setboardSize] = useState<number>(15);
 
   const playersRef = useRef<any>(players);
   useEffect(() => {
@@ -40,8 +40,21 @@ const BoardCanvas: React.FC<IBoardProps> = ({ boardSize, centerImageUrl }) => {
     socket.emit("rooms:setup", id);
     socket.on(
       "setup",
-      ({ room, owner }: { room: IRoom; owner: IPlayerDefaults }) => {
+      ({
+        room,
+        owner,
+        board_size,
+      }: {
+        room: IRoom;
+        owner: IPlayerDefaults;
+        board_size: number;
+      }) => {
         if (room.users) {
+          const canvas = document.getElementById(
+            "lopoly-board"
+          ) as HTMLCanvasElement;
+          setboardSize(board_size);
+          drawBoard(canvas, board_size, 80);
           setUserOwner(owner);
           setIpOwner(room!.owner_ip);
         }
@@ -57,11 +70,6 @@ const BoardCanvas: React.FC<IBoardProps> = ({ boardSize, centerImageUrl }) => {
       socket.off("gameStateUpdated");
     };
   }, [id]);
-
-  useEffect(() => {
-    const canvas = document.getElementById("lopoly-board") as HTMLCanvasElement;
-    drawBoard(canvas, boardSize, centerImageUrl, 80);
-  }, [boardSize, centerImageUrl]);
 
   useEffect(() => {
     const handleTabPress = (e: KeyboardEvent) => {
