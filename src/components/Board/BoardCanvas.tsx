@@ -8,6 +8,7 @@ import LeaderboardModal from "../LeaderBoard/LeaderboardModal";
 import Pawn from "../Pawn/Pawn";
 
 import { useConfigPosition } from "../../hooks/useConfigPosition";
+import { useBoardClick } from "../../hooks/useBoardClick";
 import { useResize } from "../../hooks/useResize";
 
 import {
@@ -87,7 +88,7 @@ const BoardCanvas: React.FC = () => {
       )
     );
     document.addEventListener("keydown", handleTabPress);
-    return () => {
+    return () => {                  
       window.removeEventListener("resize", () =>
         useResize(
           boardRef.current?.getBoundingClientRect(),
@@ -127,6 +128,10 @@ const BoardCanvas: React.FC = () => {
       roomId: id,
     });
   };
+
+  useBoardClick(boardRef, boardSize, (row, col) => {
+    console.log(`Célula clicada no board: (${row}, ${col})`);
+  });
 
   return (
     <BoardContainer>
