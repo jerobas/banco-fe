@@ -1,17 +1,16 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import { socket } from "../../services/Auth";
-import { drawBoard } from "../../utils/functions/movement";
+import { drawBoard, pawnColors } from "../../utils";
 import { BoardContainer } from "./BoardCanvas.styles";
 
-import Pawn from "../Pawn/Pawn";
 import LeaderboardModal from "../LeaderBoard/LeaderboardModal";
+import Pawn from "../Pawn/Pawn";
 
 interface BoardProps {
   boardSize: number;
   centerImageUrl: string;
 }
-
 
 const BoardCanvas: React.FC<BoardProps> = ({ boardSize, centerImageUrl }) => {
   const { id } = useParams();
@@ -24,9 +23,10 @@ const BoardCanvas: React.FC<BoardProps> = ({ boardSize, centerImageUrl }) => {
   const [visible, setVisible] = useState(false);
   const [isModalOpen, setModalOpen] = useState(false);
 
-  const [pawns, setPawns] = useState<any>();
-
-  const [steps, setSteps] = useState([0, 0]);
+  const playersRef = useRef<any>(players);
+  useEffect(() => {
+    playersRef.current = players;
+  }, [players]);
 
   useEffect(() => {
     socket.emit("rooms:setup", id);
@@ -37,11 +37,11 @@ const BoardCanvas: React.FC<BoardProps> = ({ boardSize, centerImageUrl }) => {
       }
     });
 
-    socket.on("gameStateUpdated", handleGameStateUpdate);
+    socket.on("gameStateUpdated", (data) => handleGameStateUpdate(data));
 
     return () => {
       socket.off("setup");
-      socket.off("gameStateUpdated", handleGameStateUpdate);
+      socket.off("gameStateUpdated");
     };
   }, [id]);
 
@@ -53,132 +53,131 @@ const BoardCanvas: React.FC<BoardProps> = ({ boardSize, centerImageUrl }) => {
   useEffect(() => {
     const handleTabPress = (e: KeyboardEvent) => {
       if (e.key === "Tab") {
-        toggleModal();
+        setModalOpen(!isModalOpen);
         e.preventDefault();
       }
     };
 
+    window.addEventListener("resize", handleResize);
     document.addEventListener("keydown", handleTabPress);
     return () => {
+      window.removeEventListener("resize", handleResize);
       document.removeEventListener("keydown", handleTabPress);
     };
   }, []);
 
-  const toggleModal = () => {
-    setModalOpen(!isModalOpen);
-  };
-
-  const pawnColors = {
-    0: "red",
-    1: "blue",
-    2: "green",
-    3: "yellow",
-  };
-
-  useEffect(() => {
-    if (players) {
-      const boardPosition = boardRef.current?.getBoundingClientRect();
-
-      let aux = players?.map((_, i) => ({
-        color: pawnColors[i],
-        position: {
-          x: boardPosition!.left,
-          y: boardPosition!.top,
+  const handleResize = () => {
+    let boardPosition = boardRef.current?.getBoundingClientRect();
+    let updatedPlayers = playersRef.current.map((player) => {
+      return {
+        ...player,
+        position_fe: {
+          x:
+            player.position_fe.x -
+            player.initialBoardPosition.left +
+            boardPosition!.left,
+          y:
+            player.position_fe.y -
+            player.initialBoardPosition.top +
+            boardPosition!.top,
         },
-      }));
+      };
+    });
+    setPlayers(updatedPlayers);
+  };
 
-      setPawns(aux);
-    }
-  }, [players, boardSize]);
+  const configDefaultPositions = (players_: any) => {
+    if (playersRef.current.length == 0) {
+      const boardPosition = boardRef.current?.getBoundingClientRect();
+      const initialBoardPosition = JSON.parse(JSON.stringify(boardPosition));
 
-  useEffect(() => {
-    if (pawns && pawns.length > 0) {
-      players?.forEach((player, i) => {
-        movePawn(i, player.position);
+      let updatedPlayers = players_.map((player, index) => {
+        return {
+          initialBoardPosition: {
+            x: initialBoardPosition!.left,
+            y: initialBoardPosition!.top,
+          },
+          position_fe: { x: boardPosition!.left, y: boardPosition!.top },
+          color: pawnColors[index],
+          ...player,
+        };
       });
+      setPlayers(updatedPlayers);
+    } else {
+      let updatedPlayers = players_.map((player, index) => {
+        return {
+          ...player,
+          position_fe: playersRef.current[index].position_fe,
+        };
+      });
+      movePawns(updatedPlayers);
     }
-  }, [pawns]);
+    setButtonDisabled(false);
+  };
 
-  const handleGameStateUpdate = useCallback((data) => {
+  const handleGameStateUpdate = (data) => {
     if (data.type === true) {
       socket.on("playersStates", (data) => {
-        setPlayers(data.users);
         setCurrentTurn(data.currentTurn);
+        configDefaultPositions(data.users);
       });
       setCurrentTurn(data.room.current_user_turn);
       setVisible(true);
     }
-  }, []);
+  };
 
-  const movePawn = useCallback(
-    (index: number, targetStep: number) => {
-      const newSteps = [...steps];
-      let currentStep = newSteps[index];
+  const movePawns = (updatedPlayers) => {
+    const newPlayers = JSON.parse(JSON.stringify(playersRef.current));
 
-      if (currentStep === targetStep) {
-        setButtonDisabled(false);
-        return;
-      }
-
-      const interval = setInterval(() => {
-        currentStep = (currentStep + 1) % (boardSize * 4 - 4);
-        newSteps[index] = currentStep;
-
-        setSteps(newSteps);
-
-        const newPawns = pawns.map((pawn, i) => {
-          if (i === index) {
-            let newPosition = { ...pawn.position };
-
-            if (currentStep < boardSize) {
-              // Move right
-              newPosition.x += 80;
-            } else if (currentStep < boardSize * 2) {
-              // Move down
-              newPosition.y += 80;
-            } else if (currentStep < boardSize * 3) {
-              // Move left
-              newPosition.x -= 80;
-            } else {
-              // Move up
-              newPosition.y -= 80;
-            }
-
-            return {
-              ...pawn,
-              position: newPosition,
-            };
+    updatedPlayers.forEach((player, index) => {
+      let targetStep = player.position;
+      let money = player.money;
+      let currentStep = newPlayers[index].position;
+      const intervalId = setInterval(() => {
+        if (currentStep === targetStep) {
+          clearInterval(intervalId);
+        } else {
+          currentStep = (currentStep + 1) % (boardSize * 4 - 4);
+          if (currentStep === 0) {
+            newPlayers[index].position_fe.y -= 80;
+          } else if (currentStep < boardSize) {
+            newPlayers[index].position_fe.x += 80;
+          } else if (currentStep < boardSize * 2 - 1) {
+            newPlayers[index].position_fe.y += 80;
+          } else if (currentStep < boardSize * 3 - 2) {
+            newPlayers[index].position_fe.x -= 80;
+          } else {
+            newPlayers[index].position_fe.y -= 80;
           }
 
-          return pawn;
-        });
-
-        setPawns(newPawns);
-
-        if (currentStep === targetStep) {
-          clearInterval(interval);
-          setButtonDisabled(false);
+          setPlayers((prevPlayers) => {
+            const updatedPlayers = [...prevPlayers];
+            updatedPlayers[index] = {
+              ...updatedPlayers[index],
+              position_fe: { ...newPlayers[index].position_fe },
+              position: currentStep,
+              money,
+            };
+            return updatedPlayers;
+          });
         }
       }, 200);
-    },
-    [steps, boardSize, pawns]
-  );
+    });
+
+    setButtonDisabled(false);
+  };
 
   const handleStartGame = () => {
     socket.emit("game:start", id);
   };
 
   const handleDice = () => {
-    let d1 = Math.floor(Math.random() * 6) + 1;
-    let d2 = Math.floor(Math.random() * 6) + 1;
-
     setButtonDisabled(true);
     socket.emit("game:rollDices", {
       roomId: id,
-      dices: [d1, d2],
     });
   };
-  
+
   return (
     <BoardContainer>
       <LeaderboardModal
@@ -197,9 +196,13 @@ const BoardCanvas: React.FC<BoardProps> = ({ boardSize, centerImageUrl }) => {
         )}
       </div>
       <canvas id="lopoly-board" ref={boardRef} />
-      {pawns &&
-        pawns.map((pawn, index) => (
-          <Pawn key={index} color={pawn.color} position={pawn.position} />
+      {players &&
+        players.map((player, index) => (
+          <Pawn
+            key={index}
+            color={player.color}
+            position={player.position_fe}
+          />
         ))}
     </BoardContainer>
   );

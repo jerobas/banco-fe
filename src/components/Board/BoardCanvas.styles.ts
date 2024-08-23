@@ -10,6 +10,7 @@ export const BoardContainer = styled.div`
   margin: 0;
   background-color: #f0f0f0;
   canvas {
+    /* transform: rotateX(56deg) rotateZ(45deg); */
     position: relative;
     border: 2px solid #333;
     transform-origin: center;

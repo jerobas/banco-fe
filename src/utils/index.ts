@@ -68,23 +68,9 @@ export const drawBoard = (
   centerImage.src = centerImageUrl;
 };
 
-export const calculatePawnPosition = (step, boardSize) => {
-  const squareSize = 50;
-  let x, y;
-
-  if (step < boardSize) {
-    x = step * squareSize;
-    y = 0;
-  } else if (step < boardSize * 2) {
-    x = (boardSize - 1) * squareSize;
-    y = (step - boardSize) * squareSize;
-  } else if (step < boardSize * 3) {
-    x = (boardSize - 1 - (step - boardSize * 2)) * squareSize;
-    y = (boardSize - 1) * squareSize;
-  } else {
-    x = 0;
-    y = (boardSize - 1 - (step - boardSize * 3)) * squareSize;
-  }
-
-  return { x, y };
+export const pawnColors = {
+  0: "red",
+  1: "blue",
+  2: "green",
+  3: "yellow",
 };
