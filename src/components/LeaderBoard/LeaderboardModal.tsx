@@ -8,15 +8,10 @@ import {
   PlayerRow,
 } from "./LeaderboardModal.styles";
 
-type Player = {
-  id: string;
-  name: string;
-  money: string;
-  ip_address: string;
-};
+import { IPlayer } from "../../interfaces";
 
 interface LeaderboardModalProps {
-  players: Player[];
+  players: IPlayer[];
   isOpen: boolean;
   onClose: () => void;
 }

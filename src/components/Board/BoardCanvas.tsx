@@ -1,27 +1,25 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import { socket } from "../../services/Auth";
-import { drawBoard, pawnColors } from "../../utils";
+import { drawBoard } from "../../utils";
 import { BoardContainer } from "./BoardCanvas.styles";
 
 import LeaderboardModal from "../LeaderBoard/LeaderboardModal";
 import Pawn from "../Pawn/Pawn";
 
-interface BoardProps {
-  boardSize: number;
-  centerImageUrl: string;
-}
+import { useConfigPosition } from "../../hooks/useConfigPosition";
+import { IBoardProps, IPlayer, IPlayerDefaults } from "../../interfaces";
 
-const BoardCanvas: React.FC<BoardProps> = ({ boardSize, centerImageUrl }) => {
+const BoardCanvas: React.FC<IBoardProps> = ({ boardSize, centerImageUrl }) => {
   const { id } = useParams();
   const boardRef = useRef<HTMLCanvasElement>(null);
-  const [buttonDisabled, setButtonDisabled] = useState(false);
-  const [players, setPlayers] = useState<any>([]);
-  const [userOwner, setUserOwner] = useState<any>();
+  const [buttonDisabled, setButtonDisabled] = useState<boolean>(false);
+  const [players, setPlayers] = useState<IPlayer[]>([]);
+  const [userOwner, setUserOwner] = useState<IPlayerDefaults>();
   const [ip, setIpOwner] = useState();
-  const [currentTurn, setCurrentTurn] = useState<any>(0);
-  const [visible, setVisible] = useState(false);
-  const [isModalOpen, setModalOpen] = useState(false);
+  const [currentTurn, setCurrentTurn] = useState<IPlayerDefaults>();
+  const [visible, setVisible] = useState<boolean>(false);
+  const [isModalOpen, setModalOpen] = useState<boolean>(false);
 
   const playersRef = useRef<any>(players);
   useEffect(() => {
@@ -86,85 +84,22 @@ const BoardCanvas: React.FC<BoardProps> = ({ boardSize, centerImageUrl }) => {
     setPlayers(updatedPlayers);
   };
 
-  const configDefaultPositions = (players_: any) => {
-    if (playersRef.current.length == 0) {
-      const boardPosition = boardRef.current?.getBoundingClientRect();
-      const initialBoardPosition = JSON.parse(JSON.stringify(boardPosition));
-
-      let updatedPlayers = players_.map((player, index) => {
-        return {
-          initialBoardPosition: {
-            x: initialBoardPosition!.left,
-            y: initialBoardPosition!.top,
-          },
-          position_fe: { x: boardPosition!.left, y: boardPosition!.top },
-          color: pawnColors[index],
-          ...player,
-        };
-      });
-      setPlayers(updatedPlayers);
-    } else {
-      let updatedPlayers = players_.map((player, index) => {
-        return {
-          ...player,
-          position_fe: playersRef.current[index].position_fe,
-        };
-      });
-      movePawns(updatedPlayers);
-    }
-    setButtonDisabled(false);
-  };
-
   const handleGameStateUpdate = (data) => {
     if (data.type === true) {
       socket.on("playersStates", (data) => {
         setCurrentTurn(data.currentTurn);
-        configDefaultPositions(data.users);
+        useConfigPosition(
+          data.users,
+          playersRef,
+          boardRef.current?.getBoundingClientRect(),
+          boardSize,
+          setPlayers,
+          setButtonDisabled
+        );
       });
       setCurrentTurn(data.room.current_user_turn);
       setVisible(true);
     }
-  };
-
-  const movePawns = (updatedPlayers) => {
-    const newPlayers = JSON.parse(JSON.stringify(playersRef.current));
-
-    updatedPlayers.forEach((player, index) => {
-      let targetStep = player.position;
-      let money = player.money;
-      let currentStep = newPlayers[index].position;
-      const intervalId = setInterval(() => {
-        if (currentStep === targetStep) {
-          clearInterval(intervalId);
-        } else {
-          currentStep = (currentStep + 1) % (boardSize * 4 - 4);
-          if (currentStep === 0) {
-            newPlayers[index].position_fe.y -= 80;
-          } else if (currentStep < boardSize) {
-            newPlayers[index].position_fe.x += 80;
-          } else if (currentStep < boardSize * 2 - 1) {
-            newPlayers[index].position_fe.y += 80;
-          } else if (currentStep < boardSize * 3 - 2) {
-            newPlayers[index].position_fe.x -= 80;
-          } else {
-            newPlayers[index].position_fe.y -= 80;
-          }
-
-          setPlayers((prevPlayers) => {
-            const updatedPlayers = [...prevPlayers];
-            updatedPlayers[index] = {
-              ...updatedPlayers[index],
-              position_fe: { ...newPlayers[index].position_fe },
-              position: currentStep,
-              money,
-            };
-            return updatedPlayers;
-          });
-        }
-      }, 200);
-    });
-
-    setButtonDisabled(false);
   };
 
   const handleStartGame = () => {
