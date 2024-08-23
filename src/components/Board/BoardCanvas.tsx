@@ -8,15 +8,25 @@ import LeaderboardModal from "../LeaderBoard/LeaderboardModal";
 import Pawn from "../Pawn/Pawn";
 
 import { useConfigPosition } from "../../hooks/useConfigPosition";
-import { IBoardProps, IPlayer, IPlayerDefaults } from "../../interfaces";
+import { useResize } from "../../hooks/useResize";
+
+import {
+  IBoardProps,
+  IGameStateUpdated,
+  IPlayer,
+  IPlayerDefaults,
+  IPlayersStates,
+  IRoom,
+} from "../../interfaces";
 
 const BoardCanvas: React.FC<IBoardProps> = ({ boardSize, centerImageUrl }) => {
   const { id } = useParams();
   const boardRef = useRef<HTMLCanvasElement>(null);
+
   const [buttonDisabled, setButtonDisabled] = useState<boolean>(false);
   const [players, setPlayers] = useState<IPlayer[]>([]);
   const [userOwner, setUserOwner] = useState<IPlayerDefaults>();
-  const [ip, setIpOwner] = useState();
+  const [ip, setIpOwner] = useState<string>();
   const [currentTurn, setCurrentTurn] = useState<IPlayerDefaults>();
   const [visible, setVisible] = useState<boolean>(false);
   const [isModalOpen, setModalOpen] = useState<boolean>(false);
@@ -28,14 +38,19 @@ const BoardCanvas: React.FC<IBoardProps> = ({ boardSize, centerImageUrl }) => {
 
   useEffect(() => {
     socket.emit("rooms:setup", id);
-    socket.on("setup", ({ room, owner }) => {
-      if (room.users) {
-        setUserOwner(owner);
-        setIpOwner(room.owner_ip);
+    socket.on(
+      "setup",
+      ({ room, owner }: { room: IRoom; owner: IPlayerDefaults }) => {
+        if (room.users) {
+          setUserOwner(owner);
+          setIpOwner(room!.owner_ip);
+        }
       }
-    });
+    );
 
-    socket.on("gameStateUpdated", (data) => handleGameStateUpdate(data));
+    socket.on("gameStateUpdated", (data: IGameStateUpdated) =>
+      handleGameStateUpdate(data)
+    );
 
     return () => {
       socket.off("setup");
@@ -56,37 +71,29 @@ const BoardCanvas: React.FC<IBoardProps> = ({ boardSize, centerImageUrl }) => {
       }
     };
 
-    window.addEventListener("resize", handleResize);
+    window.addEventListener("resize", () =>
+      useResize(
+        boardRef.current?.getBoundingClientRect(),
+        setPlayers,
+        playersRef
+      )
+    );
     document.addEventListener("keydown", handleTabPress);
     return () => {
-      window.removeEventListener("resize", handleResize);
+      window.removeEventListener("resize", () =>
+        useResize(
+          boardRef.current?.getBoundingClientRect(),
+          setPlayers,
+          playersRef
+        )
+      );
       document.removeEventListener("keydown", handleTabPress);
     };
   }, []);
 
-  const handleResize = () => {
-    let boardPosition = boardRef.current?.getBoundingClientRect();
-    let updatedPlayers = playersRef.current.map((player) => {
-      return {
-        ...player,
-        position_fe: {
-          x:
-            player.position_fe.x -
-            player.initialBoardPosition.left +
-            boardPosition!.left,
-          y:
-            player.position_fe.y -
-            player.initialBoardPosition.top +
-            boardPosition!.top,
-        },
-      };
-    });
-    setPlayers(updatedPlayers);
-  };
-
-  const handleGameStateUpdate = (data) => {
-    if (data.type === true) {
-      socket.on("playersStates", (data) => {
+  const handleGameStateUpdate = (data: IGameStateUpdated) => {
+    if (data.type) {
+      socket.on("playersStates", (data: IPlayersStates) => {
         setCurrentTurn(data.currentTurn);
         useConfigPosition(
           data.users,
@@ -97,7 +104,7 @@ const BoardCanvas: React.FC<IBoardProps> = ({ boardSize, centerImageUrl }) => {
           setButtonDisabled
         );
       });
-      setCurrentTurn(data.room.current_user_turn);
+      setCurrentTurn(data.room.current_user_turn!);
       setVisible(true);
     }
   };

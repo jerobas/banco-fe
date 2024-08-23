@@ -33,3 +33,30 @@ export interface IPawnProps {
   color: string;
   position: { x: number; y: number };
 }
+
+export interface IGameStateUpdated {
+  diceWinners: string[];
+  type: boolean;
+  room: IRoom;
+}
+
+export interface IRoom {
+  id: number;
+  name: string;
+  password: string;
+  turn: number;
+  owner_ip: string;
+  sequence: string[] | [];
+  game_state: boolean;
+  limit_of_users: number;
+  created_at: string;
+  updated_at: string;
+  deleted_at: string | null;
+  users: IPlayerDefaults[];
+  current_user_turn: IPlayerDefaults | null;
+}
+
+export interface IPlayersStates {
+  users: IPlayerDefaults[];
+  currentTurn: IPlayerDefaults;
+}
