@@ -17,8 +17,13 @@ export const useConfigPosition = (
         initialBoardPosition: {
           x: initialBoardPosition!.left,
           y: initialBoardPosition!.top,
+          width: initialBoardPosition!.width,
+          height: initialBoardPosition!.height,
         },
-        position_fe: { x: boardPosition!.left, y: boardPosition!.top },
+        position_fe: {
+          x: boardPosition!.left,
+          y: boardPosition!.top,
+        },
         color: pawnColors[index],
         ...player,
       };
@@ -36,7 +41,8 @@ export const useConfigPosition = (
       JSON.parse(JSON.stringify(playersRef.current)),
       boardSize,
       setPlayers,
-      setButtonDisabled
+      setButtonDisabled,
+      boardPosition
     );
   }
   setButtonDisabled(false);

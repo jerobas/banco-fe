@@ -1,4 +1,10 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, {
+  useRef,
+  useState,
+  forwardRef,
+  useLayoutEffect,
+  useEffect,
+} from "react";
 import { useParams } from "react-router-dom";
 import { socket } from "../../services/Auth";
 import { drawBoard } from "../../utils";
@@ -19,12 +25,15 @@ import {
   IRoom,
 } from "../../interfaces";
 
-const BoardCanvas: React.FC = () => {
+const BoardCanvas = forwardRef<HTMLCanvasElement, any>((_, ref) => {
   const { id } = useParams();
-  const boardRef = useRef<HTMLCanvasElement>(null);
 
   const [buttonDisabled, setButtonDisabled] = useState<boolean>(false);
   const [players, setPlayers] = useState<IPlayer[]>([]);
+  const [cellSize, setCellSize] = useState<{ width: number; height: number }>({
+    width: 80,
+    height: 80,
+  });
   const [userOwner, setUserOwner] = useState<IPlayerDefaults>();
   const [ip, setIpOwner] = useState<string>();
   const [currentTurn, setCurrentTurn] = useState<IPlayerDefaults>();
@@ -33,11 +42,11 @@ const BoardCanvas: React.FC = () => {
   const [boardSize, setboardSize] = useState<number>(15);
 
   const playersRef = useRef<any>(players);
-  useEffect(() => {
+  useLayoutEffect(() => {
     playersRef.current = players;
   }, [players]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     socket.emit("rooms:setup", id);
     socket.on(
       "setup",
@@ -51,13 +60,25 @@ const BoardCanvas: React.FC = () => {
         board_size: number;
       }) => {
         if (room.users) {
-          const canvas = document.getElementById(
-            "lopoly-board"
-          ) as HTMLCanvasElement;
           setboardSize(board_size);
-          drawBoard(canvas, board_size, 80);
-          setUserOwner(owner);
-          setIpOwner(room!.owner_ip);
+
+          const canvas = (ref as React.MutableRefObject<HTMLCanvasElement>)
+            .current;
+
+          if (canvas) {
+            setTimeout(() => {
+              drawBoard(canvas, board_size, 80);
+              setUserOwner(owner);
+              setIpOwner(room.owner_ip);
+
+              const canvasRect = canvas.getBoundingClientRect();
+
+              setCellSize({
+                width: canvasRect.width / boardSize,
+                height: canvasRect.height / boardSize,
+              });
+            }, 0);
+          }
         }
       }
     );
@@ -70,7 +91,23 @@ const BoardCanvas: React.FC = () => {
       socket.off("setup");
       socket.off("gameStateUpdated");
     };
-  }, [id]);
+  }, [id, ref, boardSize]);
+
+  useEffect(() => {
+    const handleResize = () => {
+      const canvas = (ref as React.MutableRefObject<HTMLCanvasElement>).current;
+      if (canvas) {
+        const canvasRect = canvas.getBoundingClientRect();
+        useResize(canvasRect, setPlayers, playersRef); // tem q corrigir a logica do resize
+      }
+    };
+
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, [boardSize, ref]);
 
   useEffect(() => {
     const handleTabPress = (e: KeyboardEvent) => {
@@ -80,38 +117,34 @@ const BoardCanvas: React.FC = () => {
       }
     };
 
-    window.addEventListener("resize", () =>
-      useResize(
-        boardRef.current?.getBoundingClientRect(),
-        setPlayers,
-        playersRef
-      )
-    );
     document.addEventListener("keydown", handleTabPress);
-    return () => {                  
-      window.removeEventListener("resize", () =>
-        useResize(
-          boardRef.current?.getBoundingClientRect(),
-          setPlayers,
-          playersRef
-        )
-      );
+
+    return () => {
       document.removeEventListener("keydown", handleTabPress);
     };
-  }, []);
+  }, [isModalOpen]);
 
   const handleGameStateUpdate = (data: IGameStateUpdated) => {
     if (data.type) {
       socket.on("playersStates", (data: IPlayersStates) => {
-        setCurrentTurn(data.currentTurn);
-        useConfigPosition(
-          data.users,
-          playersRef,
-          boardRef.current?.getBoundingClientRect(),
-          boardSize,
-          setPlayers,
-          setButtonDisabled
-        );
+        const canvas = (ref as React.MutableRefObject<HTMLCanvasElement>)
+          .current;
+        if (canvas) {
+          const canvasRect = canvas.getBoundingClientRect();
+          setCellSize({
+            width: canvasRect!.width / boardSize,
+            height: canvasRect!.height / boardSize,
+          });
+          setCurrentTurn(data.currentTurn);
+          useConfigPosition(
+            data.users,
+            playersRef,
+            canvasRect,
+            boardSize,
+            setPlayers,
+            setButtonDisabled
+          );
+        }
       });
       setCurrentTurn(data.room.current_user_turn!);
       setVisible(true);
@@ -129,12 +162,17 @@ const BoardCanvas: React.FC = () => {
     });
   };
 
-  useBoardClick(boardRef, boardSize, (row, col) => {
-    console.log(`Célula clicada no board: (${row}, ${col})`);
-  });
+  useBoardClick(
+    ref as React.MutableRefObject<HTMLCanvasElement>,
+    boardSize,
+    cellSize,
+    (position) => {
+      console.log(` ${position}`);
+    }
+  );
 
   return (
-    <BoardContainer>
+    <BoardContainer id="container">
       <LeaderboardModal
         players={players}
         isOpen={isModalOpen}
@@ -150,16 +188,17 @@ const BoardCanvas: React.FC = () => {
           </button>
         )}
       </div>
-      <canvas id="lopoly-board" ref={boardRef} />
+      <canvas id="lopoly-board" ref={ref} />
       {players &&
         players.map((player, index) => (
           <Pawn
             key={index}
             color={player.color}
             position={player.position_fe}
+            cell_size={cellSize}
           />
         ))}
     </BoardContainer>
   );
-};
+});
 export default BoardCanvas;

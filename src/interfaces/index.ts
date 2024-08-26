@@ -27,6 +27,7 @@ export interface IPlayerDefaults {
 export interface IPawnProps {
   color: string;
   position: { x: number; y: number };
+  cell_size: { width: number; height: number };
 }
 
 export interface IGameStateUpdated {

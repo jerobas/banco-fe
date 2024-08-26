@@ -5,8 +5,12 @@ export const useMovePawns = (
   newPlayers: any,
   boardSize: number,
   setPlayers: React.Dispatch<React.SetStateAction<IPlayer[]>>,
-  setButtonDisabled: React.Dispatch<React.SetStateAction<boolean>>
+  setButtonDisabled: React.Dispatch<React.SetStateAction<boolean>>,
+  canvasRect: DOMRect | undefined
 ) => {
+  const cellSizeX = canvasRect!.width / boardSize;
+  const cellSizeY = canvasRect!.height / boardSize;
+
   updatedPlayers.forEach((player, index) => {
     let targetStep = player.position;
     let money = player.money;
@@ -17,15 +21,15 @@ export const useMovePawns = (
       } else {
         currentStep = (currentStep + 1) % (boardSize * 4 - 4);
         if (currentStep === 0) {
-          newPlayers[index].position_fe.y -= 80;
+          newPlayers[index].position_fe.y -= cellSizeY;
         } else if (currentStep < boardSize) {
-          newPlayers[index].position_fe.x += 80;
+          newPlayers[index].position_fe.x += cellSizeX;
         } else if (currentStep < boardSize * 2 - 1) {
-          newPlayers[index].position_fe.y += 80;
+          newPlayers[index].position_fe.y += cellSizeY;
         } else if (currentStep < boardSize * 3 - 2) {
-          newPlayers[index].position_fe.x -= 80;
+          newPlayers[index].position_fe.x -= cellSizeX;
         } else {
-          newPlayers[index].position_fe.y -= 80;
+          newPlayers[index].position_fe.y -= cellSizeY;
         }
 
         setPlayers((prevPlayers) => {

@@ -3,20 +3,24 @@ import { useEffect } from "react";
 export const useBoardClick = (
   boardRef: React.RefObject<HTMLCanvasElement>,
   boardSize: number,
-  onCellClick: (row: number, col: number) => void
+  cellSize: { width: number; height: number },
+  onCellClick: (position: number) => void
 ) => {
   const handleCanvasClick = (event: MouseEvent) => {
     const canvas = boardRef.current!;
     if (!canvas) return;
 
     const rect = canvas.getBoundingClientRect();
+
     const x = event.clientX - rect.left;
     const y = event.clientY - rect.top;
 
-    const clickedRow = Math.floor(y / 80);
-    const clickedCol = Math.floor(x / 80);
+    const clickedRow = Math.floor(y / cellSize.height);
+    const clickedCol = Math.floor(x / cellSize.width);
 
-    onCellClick(clickedRow, clickedCol);
+    const position = clickedRow * boardSize + clickedCol + 1;
+
+    onCellClick(position);
   };
   useEffect(() => {
     const canvas = boardRef.current;
@@ -29,5 +33,5 @@ export const useBoardClick = (
         canvas.removeEventListener("click", handleCanvasClick);
       }
     };
-  }, [boardSize]);
+  }, [boardSize, boardRef]);
 };
