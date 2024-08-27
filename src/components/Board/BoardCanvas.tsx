@@ -12,6 +12,7 @@ import { BoardContainer } from "./BoardCanvas.styles";
 
 import LeaderboardModal from "../LeaderBoard/LeaderboardModal";
 import Pawn from "../Pawn/Pawn";
+import CardComponent from "../Card/CardComponent";
 
 import { useConfigPosition } from "../../hooks/useConfigPosition";
 import { useBoardClick } from "../../hooks/useBoardClick";
@@ -40,8 +41,11 @@ const BoardCanvas = forwardRef<HTMLCanvasElement, any>((_, ref) => {
   const [visible, setVisible] = useState<boolean>(false);
   const [isModalOpen, setModalOpen] = useState<boolean>(false);
   const [boardSize, setboardSize] = useState<number>(15);
+  const [cardPosition, setCardPosition] = useState<number | null>(null);
+  const [isModalCardOpen, setModalCardOpen] = useState<boolean>(true);
 
   const playersRef = useRef<any>(players);
+
   useLayoutEffect(() => {
     playersRef.current = players;
   }, [players]);
@@ -93,21 +97,21 @@ const BoardCanvas = forwardRef<HTMLCanvasElement, any>((_, ref) => {
     };
   }, [id, ref, boardSize]);
 
-  useEffect(() => {
-    const handleResize = () => {
-      const canvas = (ref as React.MutableRefObject<HTMLCanvasElement>).current;
-      if (canvas) {
-        const canvasRect = canvas.getBoundingClientRect();
-        useResize(canvasRect, setPlayers, playersRef); // tem q corrigir a logica do resize
-      }
-    };
+  // useEffect(() => {
+  //   const handleResize = () => {
+  //     const canvas = (ref as React.MutableRefObject<HTMLCanvasElement>).current;
+  //     if (canvas) {
+  //       const canvasRect = canvas.getBoundingClientRect();
+  //       useResize(canvasRect, setPlayers, playersRef); // tem q corrigir a logica do resize
+  //     }
+  //   };
 
-    window.addEventListener("resize", handleResize);
+  //   window.addEventListener("resize", handleResize);
 
-    return () => {
-      window.removeEventListener("resize", handleResize);
-    };
-  }, [boardSize, ref]);
+  //   return () => {
+  //     window.removeEventListener("resize", handleResize);
+  //   };
+  // }, [boardSize, ref]);
 
   useEffect(() => {
     const handleTabPress = (e: KeyboardEvent) => {
@@ -166,10 +170,13 @@ const BoardCanvas = forwardRef<HTMLCanvasElement, any>((_, ref) => {
     ref as React.MutableRefObject<HTMLCanvasElement>,
     boardSize,
     cellSize,
-    (position) => {
-      console.log(` ${position}`);
-    }
+    setCardPosition,
+    setModalCardOpen
   );
+
+  const handleCloseModarCard = () => {
+    setModalCardOpen(false);
+  };
 
   return (
     <BoardContainer id="container">
@@ -178,6 +185,9 @@ const BoardCanvas = forwardRef<HTMLCanvasElement, any>((_, ref) => {
         isOpen={isModalOpen}
         onClose={() => setModalOpen(false)}
       />
+      {isModalCardOpen && (
+        <CardComponent position={cardPosition} onClose={handleCloseModarCard} />
+      )}
       {!visible && userOwner?.ip_address === ip && (
         <button onClick={handleStartGame}>Start</button>
       )}

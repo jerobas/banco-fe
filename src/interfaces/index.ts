@@ -57,16 +57,19 @@ export interface IPlayersStates {
   currentTurn: IPlayerDefaults;
 }
 
-export interface ICardProps {
+export interface ICardData {
+  illustration_url: string;
   name: string;
   description: string;
-  imageUrl: string;
   type: string;
-  purchaseValue: number;
-  modifiers: string;
-  isTradable: boolean;
-  canAcceptModifiers: boolean;
-  rarityTier: number;
-  scalingLevel: number;
+  purchase_value: number;
+  modifiers: string[];
+  is_tradable: boolean;
+  can_accept_modifiers: boolean;
+  rarity_tier: string;
+  scaling_level: number;
   quantity: number;
+}
+export interface IApiResponse {
+  card: ICardData;
 }
