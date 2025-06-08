@@ -26,7 +26,7 @@ import {
   IRoom,
 } from "../../interfaces";
 
-const d = forwardRef<HTMLCanvasElement, any>((_, ref) => {
+const BoardCanvas = forwardRef<HTMLCanvasElement, any>((_, ref) => {
   const { id } = useParams();
 
   const [buttonDisabled, setButtonDisabled] = useState<boolean>(false);
