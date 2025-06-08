@@ -26,7 +26,7 @@ import {
   IRoom,
 } from "../../interfaces";
 
-const BoardCanvas = forwardRef<HTMLCanvasElement, any>((_, ref) => {
+const d = forwardRef<HTMLCanvasElement, any>((_, ref) => {
   const { id } = useParams();
 
   const [buttonDisabled, setButtonDisabled] = useState<boolean>(false);
@@ -130,15 +130,25 @@ const BoardCanvas = forwardRef<HTMLCanvasElement, any>((_, ref) => {
 
   const handleGameStateUpdate = (data: IGameStateUpdated) => {
     if (data.type) {
+      const canvas = (ref as React.MutableRefObject<HTMLCanvasElement>).current;
+      let canvasRect;
+      if (canvas) {
+        canvasRect = canvas.getBoundingClientRect();
+        setCellSize({
+          width: canvasRect!.width / boardSize,
+          height: canvasRect!.height / boardSize,
+        });
+      }
+      useConfigPosition(
+        data.room.users,
+        playersRef,
+        canvasRect,
+        boardSize,
+        setPlayers,
+        setButtonDisabled
+      );
       socket.on("playersStates", (data: IPlayersStates) => {
-        const canvas = (ref as React.MutableRefObject<HTMLCanvasElement>)
-          .current;
         if (canvas) {
-          const canvasRect = canvas.getBoundingClientRect();
-          setCellSize({
-            width: canvasRect!.width / boardSize,
-            height: canvasRect!.height / boardSize,
-          });
           setCurrentTurn(data.currentTurn);
           useConfigPosition(
             data.users,

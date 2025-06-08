@@ -10,7 +10,7 @@ export const useConfigPosition = (
   setPlayers: React.Dispatch<React.SetStateAction<IPlayer[]>>,
   setButtonDisabled: React.Dispatch<React.SetStateAction<boolean>>
 ) => {
-  if (playersRef.current.length == 0) {
+  if (playersRef.current.length == 0) { //quando der start
     const initialBoardPosition = JSON.parse(JSON.stringify(boardPosition));
     let updatedPlayers = players_.map((player, index) => {
       return {
