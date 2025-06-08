@@ -1,86 +1,38 @@
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useActionState } from "react";
 
-import ApiService from "../../api/index";
 import Layout from "../../components/Layout";
-import { saveUserInStorage } from "../../services/Auth";
 import { Styles, buttonVariants } from "./styles";
+import AnimatedLoginPageText from "../../components/AnimatedLoginPageText";
+import { useHandleLogin } from "../../hooks/useHandleLogin";
 
 export default function Login() {
-  const navigate = useNavigate();
-  const [text, setText] = useState("");
-  const [progress, setProgress] = useState(0);
-  const [name, setName] = useState("");
-  const [error, setError] = useState("");
-  const originalText = "Um jogo de tabuleiro diferente de todos os outros!";
-  const typingSpeed = 100;
+  const handleLogin = useHandleLogin()
+  const [error, formAction, isPending] = useActionState(handleLogin, false)
 
-  useEffect(() => {
-    let currentIndex = 0;
-    let timerId: NodeJS.Timeout;
-    const typeText = () => {
-      setText(originalText.substring(0, currentIndex));
-      currentIndex++;
-
-      if (currentIndex <= originalText.length) {
-        timerId = setTimeout(typeText, typingSpeed);
-      }
-      if (currentIndex === originalText.length) setProgress(100);
-    };
-
-    typeText();
-
-    return () => {
-      clearTimeout(timerId);
-    };
-  }, []);
-
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    if (!name.trim()) {
-      setError("O nome é obrigatório!");
-      return;
-    }
-    try {
-      const response = await ApiService.post("/users", { name });
-      if (response.status === 201) {
-        saveUserInStorage(JSON.stringify(response.data));
-        navigate("/");
-      }
-    } catch (err) {
-      setError("Erro ao fazer login.");
-    }
-  };
+  //falta o toastify
 
   return (
     <Layout>
       <Styles.Container>
         <Styles.Content>
-          <Styles.TypingText>
-            {text}
-            <Styles.Line progress={progress} />
-          </Styles.TypingText>
-
+          <AnimatedLoginPageText />
           <div>
-            <form onSubmit={handleLogin}>
+            <form>
               <input
                 type="text"
+                name="name"
                 autoComplete="off"
-                id="input"
-                placeholder={error || "Seu nome"}
-                value={name}
-                onChange={(e) => {
-                  setName(e.target.value);
-                  setError("");
-                }}
+                placeholder={"Seu nome"}
                 style={{
                   outlineColor: error ? "#861515" : undefined,
                 }}
+                disabled={isPending}
               />
               <Styles.StyledButton
                 variants={buttonVariants}
                 whileHover="hover"
-                onClick={() => { }}
+                disabled={isPending}
+                formAction={formAction}
               >
                 Fazer login!
               </Styles.StyledButton>

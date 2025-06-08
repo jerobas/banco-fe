@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@tanstack/react-query": "^5.80.6",
+    "@types/node": "^22.15.30",
     "axios": "^1.9.0",
     "framer-motion": "^12.16.0",
     "million": "^3.1.11",

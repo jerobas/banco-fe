@@ -91,3 +91,7 @@ export interface IWrapper {
   width: string;
   height: string;
 }
+
+export interface ILine {
+  progress: number
+}

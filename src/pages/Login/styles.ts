@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
 import styled from "styled-components";
+import { ILine } from '../../interfaces';
 
 export const Styles = {
   Container: styled.div`
@@ -57,14 +58,14 @@ export const Styles = {
       line-height: 2rem;
     }
   `,
-   Line: styled.div`
+  Line: styled.div<ILine>`
     background-color:  ${props => props.theme.colors.White};;
     border: 8px; 
     height: 0.05rem;
     left: 0;
     margin-top: 0.17rem;
     transition: width 1s ease-in-out;
-    width: ${props  => props.progress}%;
+    width: ${props => props.progress}%;
     @media (max-width: 768px) {
         display: none;
     }
