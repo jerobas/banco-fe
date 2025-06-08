@@ -1,10 +1,10 @@
 import { useEffect, useRef } from "react";
 import { useParams } from "react-router-dom";
 
-import BoardCanvas from "../../components/Board/BoardCanvas";
-import Chat from "../../components/Chat/Chat";
+import BoardCanvas from "../../components/Board";
+import Chat from "../../components/Chat";
 import { socket } from "../../services/Auth";
-import { Styles } from "./Room.styles";
+import { Styles } from "./styles";
 
 export default function Room() {
   const { id } = useParams();

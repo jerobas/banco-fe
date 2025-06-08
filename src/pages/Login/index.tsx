@@ -1,43 +1,23 @@
 import { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-
 import ApiService from "../../api/index";
-import Layout from "../../components/Layout/Layout";
+import Layout from "../../components/Layout";
 import { saveUserInStorage } from "../../services/Auth";
-import { Styles, buttonVariants } from "./Login.styles";
-const userSchema = z.object({
-  name: z
-    .string()
-    .nonempty("O nome é obrigatório!")
-    .min(1, "Precisa ter no mínimo 1 letra!")
-    .max(20, "Pode ter no máximo 15 letras!"),
-});
+import { Styles, buttonVariants } from "./styles";
 
 export default function Login() {
   const navigate = useNavigate();
   const [text, setText] = useState("");
   const [progress, setProgress] = useState(0);
+  const [name, setName] = useState("");
+  const [error, setError] = useState("");
   const originalText = "Um jogo de tabuleiro diferente de todos os outros!";
   const typingSpeed = 100;
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm({
-    mode: "onChange",
-    shouldFocusError: true,
-    reValidateMode: "onChange",
-    resolver: zodResolver(userSchema),
-  });
-
   useEffect(() => {
     let currentIndex = 0;
-    let timerId = null;
+    let timerId: NodeJS.Timeout;
     const typeText = () => {
       setText(originalText.substring(0, currentIndex));
       currentIndex++;
@@ -55,22 +35,22 @@ export default function Login() {
     };
   }, []);
 
-  const handleLogin = async ({ name }) => {
-    await ApiService.post("/users", { name: name }).then((response) => {
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    if (!name.trim()) {
+      setError("O nome é obrigatório!");
+      return;
+    }
+    try {
+      const response = await ApiService.post("/users", { name });
       if (response.status === 201) {
         saveUserInStorage(JSON.stringify(response.data));
         navigate("/");
       }
-    });
-  };
-
-  addEventListener("input", () => {
-    let input = document.getElementById("input");
-    if (errors.name) {
-      input.style.outlineColor = "#861515";
-      input.placeholder = errors.name.message;
+    } catch (err) {
+      setError("Erro ao fazer login.");
     }
-  });
+  };
 
   return (
     <Layout>
@@ -82,18 +62,25 @@ export default function Login() {
           </Styles.TypingText>
 
           <div>
-            <form onSubmit={handleSubmit(handleLogin)}>
+            <form onSubmit={handleLogin}>
               <input
                 type="text"
                 autoComplete="off"
                 id="input"
-                placeholder="Seu nome"
-                {...register("name")}
+                placeholder={error || "Seu nome"}
+                value={name}
+                onChange={(e) => {
+                  setName(e.target.value);
+                  setError("");
+                }}
+                style={{
+                  outlineColor: error ? "#861515" : undefined,
+                }}
               />
               <Styles.StyledButton
                 variants={buttonVariants}
                 whileHover="hover"
-                onClick={() => {}}
+                onClick={() => { }}
               >
                 Fazer login!
               </Styles.StyledButton>

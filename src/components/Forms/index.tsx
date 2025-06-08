@@ -2,9 +2,9 @@ import React, { useEffect, useState } from "react";
 import { FaCheck } from "react-icons/fa";
 
 import Card from "../../assets/card.png";
-import { Container } from "../../pages/CreateRoom/CreateRoom.styles";
+import { Container } from "../CreateRoom/styles";
 import { socket } from "../../services/Auth";
-import Modal from "../Modal/Modal";
+import Modal from "../Modal";
 
 export default function BuyForm({ open, setOpen }) {
   const [delayedBuy, setDelayedBuy] = useState(false);
@@ -18,7 +18,7 @@ export default function BuyForm({ open, setOpen }) {
       return () => clearTimeout(timeoutId);
     }
   }, [delayedBuy]);
-  
+
   const handleBuy = (data) => {
     socket.emit("buyResponse", data);
     setOpen();

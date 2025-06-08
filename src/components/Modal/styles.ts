@@ -1,4 +1,5 @@
 import styled from "styled-components";
+import { IWrapper } from "../../interfaces";
 
 export const Container = styled.div`
   align-items: center;
@@ -22,7 +23,7 @@ export const Container = styled.div`
   }
 `;
 
-export const Wrapper = styled.section`
+export const Wrapper = styled.section<IWrapper>`
   align-items: center;
   align-self: center;
   background-color: ${props => props.theme.colors.quaternary};

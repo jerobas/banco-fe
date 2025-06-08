@@ -1,6 +1,4 @@
-import React from 'react'
-
-import { Container, Wrapper } from "./Modal.styles";
+import { Container, Wrapper } from "./styles";
 
 export default function Modal(
     { children,

@@ -14,7 +14,7 @@ import {
   CardName,
   ModalContent,
   ModalOverlay,
-} from "./CardComponent.styles";
+} from "./styles";
 
 const CardComponent: React.FC<{
   position: number | null;

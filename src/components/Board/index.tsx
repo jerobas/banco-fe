@@ -8,11 +8,11 @@ import React, {
 import { useParams } from "react-router-dom";
 import { socket } from "../../services/Auth";
 import { drawBoard } from "../../utils";
-import { BoardContainer } from "./BoardCanvas.styles";
+import { BoardContainer } from "./styles";
 
-import LeaderboardModal from "../LeaderBoard/LeaderboardModal";
-import Pawn from "../Pawn/Pawn";
-import CardComponent from "../Card/CardComponent";
+import LeaderboardModal from "../LeaderBoard";
+import Pawn from "../Pawn";
+import CardComponent from "../Card";
 
 import { useConfigPosition } from "../../hooks/useConfigPosition";
 import { useBoardClick } from "../../hooks/useBoardClick";

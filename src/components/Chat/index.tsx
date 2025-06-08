@@ -3,7 +3,7 @@ import { BsFillChatDotsFill, BsFillSendFill } from "react-icons/bs";
 import { useParams } from "react-router-dom";
 import { getUserFromLocalStorage, socket } from "../../services/Auth";
 import { globalTheme } from "../../styles/theme/global.theme";
-import { ChatArea, ChatContainer, ChatInputContainer } from "./Chat.styles";
+import { ChatArea, ChatContainer, ChatInputContainer } from "./styles";
 
 const Chat = () => {
   const user = getUserFromLocalStorage();
@@ -102,8 +102,8 @@ const Chat = () => {
                 justifyContent: msg.system
                   ? "center"
                   : getUserName(msg.user) === user
-                  ? "left"
-                  : "right",
+                    ? "left"
+                    : "right",
               }}
             >
               <strong

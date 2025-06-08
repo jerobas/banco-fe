@@ -6,7 +6,7 @@ import {
   ModalContent,
   ModalOverlay,
   PlayerRow,
-} from "./LeaderboardModal.styles";
+} from "./styles";
 
 import { IPlayer } from "../../interfaces";
 

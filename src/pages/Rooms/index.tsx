@@ -2,10 +2,10 @@ import React, { useState, useEffect } from "react";
 import { FaLock } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 
-import Layout from "../../components/Layout/Layout";
+import Layout from "../../components/Layout";
 import { socket, removeUserFromLastRoom } from "../../services/Auth";
-import CreateRoom from "../CreateRoom/CreateRoom";
-import JoinRoom from "../JoinRoom/JoinRoom";
+import CreateRoom from "../../components/CreateRoom";
+import JoinRoom from "../../components/JoinRoom";
 import {
   Row,
   Column,
@@ -13,7 +13,7 @@ import {
   RoomsPage,
   Button,
   RoomStyle,
-} from "./Rooms.styles";
+} from "./styles";
 
 export default function Rooms() {
   const navigate = useNavigate();
@@ -146,7 +146,6 @@ export default function Rooms() {
                       setSelectedRoom(index);
                       setFull(true);
                     }}
-                    key={index}
                   >
                     <Row style={{ width: "max-content", gap: ".3rem" }}>
                       <p>
@@ -177,6 +176,7 @@ export default function Rooms() {
         <CreateRoom isOpen={isVisible} handleClose={handleModalClose} />
         <JoinRoom
           isOpen={joinIsVisible}
+          handleClose={() => { }}
           // handleClose={(data) => {
           //   if (data) {
           //     let createdRoom = {

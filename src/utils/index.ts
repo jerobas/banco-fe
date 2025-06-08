@@ -1,3 +1,6 @@
+import { toast } from "react-toastify";
+import { socket } from "../services/Auth";
+
 export const drawBoard = (
   canvas: HTMLCanvasElement,
   boardSize: number,
@@ -73,3 +76,30 @@ export const pawnColors = {
   2: "green",
   3: "yellow",
 };
+
+export const setSocketToastifyConnection = () => {
+  socket.on("errorMessage", (data) => {
+    toast.error(data, {
+      position: "top-center",
+      autoClose: 5000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+    });
+  });
+  socket.on("eventMessage", (data) => {
+    toast.info(data, {
+      position: "top-center",
+      autoClose: 5000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+    });
+  });
+  return () => {
+    socket.off("errorMessage");
+    socket.off("eventMessage");
+  };
+}

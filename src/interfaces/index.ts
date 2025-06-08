@@ -70,6 +70,24 @@ export interface ICardData {
   scaling_level: number;
   quantity: number;
 }
+
 export interface IApiResponse {
   card: ICardData;
+}
+
+export interface IPlayerDefaultsWithRoom extends IPlayerDefaults {
+  room: Omit<IRoom, 'users' | 'current_user_turn'>;
+}
+
+export type ResponseWithMessageAndData<K extends string, T> = {
+  message: string;
+} & {
+  [key in K]: T;
+};
+
+export interface IWrapper {
+  hasHeight: boolean;
+  hasWidth: boolean;
+  width: string;
+  height: string;
 }

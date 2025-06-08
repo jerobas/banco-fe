@@ -1,12 +1,13 @@
 import io from "socket.io-client";
 import ApiService from "../api/index";
+import { IPlayerDefaultsWithRoom } from "../interfaces";
 
 export const socket = io(import.meta.env.VITE_SOCKET_API_AWS);
 export const TOKEN_KEY_USER = "@bi-user";
 
 export const isAlreadyAuthenticated = async () => {
   try {
-    let user = JSON.parse(localStorage.getItem(TOKEN_KEY_USER));
+    let user = JSON.parse(localStorage.getItem(TOKEN_KEY_USER) || JSON.stringify(null));
     if (!user) return false;
 
     let { data } = await ApiService.get(`/users/${user.id}`);
@@ -17,8 +18,8 @@ export const isAlreadyAuthenticated = async () => {
 };
 
 export const removeUserFromLastRoom = async () => {
-  let user = JSON.parse(localStorage.getItem(TOKEN_KEY_USER));
-  let { data } = await ApiService.get(`/users/${user.id}`);
+  let user = JSON.parse(localStorage.getItem(TOKEN_KEY_USER) || JSON.stringify(null));
+  let { data } = await ApiService.get<IPlayerDefaultsWithRoom>(`/users/${user.id}`);
   if (data.room) {
     let reponse = await ApiService.post(`/rooms/leave`, {
       roomId: data.room.id,

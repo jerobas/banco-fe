@@ -1,5 +1,3 @@
-import GoogleFontLoader from 'react-google-font-loader';
-
 import { createGlobalStyle } from 'styled-components'
 
 const GlobalStyle = createGlobalStyle`
@@ -118,18 +116,5 @@ const GlobalStyle = createGlobalStyle`
       color: #D8D8D8;
   }
 `
-const googleFonts = [
-  {
-    font: 'Roboto',
-    weights: [100, 300, 400, 500, 700],
-  },
-]
 
-const GlobalStyles = () => (
-  <>
-    <GlobalStyle />
-    <GoogleFontLoader fonts={googleFonts} />
-  </>
-);
-
-export default GlobalStyles;
+export default GlobalStyle;

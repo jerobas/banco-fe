@@ -10,7 +10,7 @@ export const PawnStyled = styled.div<IPawnProps>`
   border-radius: 50%;
   top: ${(props) => props.position.y}px;
   left: ${(props) => props.position.x}px;
-  transition: left 0.5s ease, top 0.5s ease;I
+  transition: left 0.5s ease, top 0.5s ease;
   outline: none;
   user-select: none;
   pointer-events: none;
