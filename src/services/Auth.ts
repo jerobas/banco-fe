@@ -1,8 +1,6 @@
-import io from "socket.io-client";
 import ApiService from "../api/index";
 import { IPlayerDefaultsWithRoom } from "../interfaces";
 
-export const socket = io(import.meta.env.VITE_SOCKET_API_AWS);
 export const TOKEN_KEY_USER = "@bi-user";
 
 export const isAlreadyAuthenticated = async () => {

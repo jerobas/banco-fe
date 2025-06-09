@@ -3,7 +3,7 @@ import { FaCheck } from "react-icons/fa";
 
 import Card from "../../assets/card.png";
 import { Container } from "../CreateRoom/styles";
-import { socket } from "../../services/Auth";
+import { socket } from "../../hooks/useSocket";
 import Modal from "../Modal";
 
 export default function BuyForm({ open, setOpen }) {

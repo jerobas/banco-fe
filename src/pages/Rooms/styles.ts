@@ -1,4 +1,5 @@
 import { styled } from "styled-components";
+import { IRoomStyle } from "../../interfaces";
 
 export const Column = styled.div`
   align-items: center;
@@ -99,13 +100,14 @@ export const RoomsPage = styled(Column)`
   }
 `;
 
-export const RoomStyle = styled(Row)`
+export const RoomStyle = styled(Row) <IRoomStyle>`
   border: 1px solid ${(props) => props.theme.dark.blue};
   border-radius: 8px;
   cursor: pointer;
   justify-content: space-between;
   padding: 1rem;
   transition: background-color 0.3s;
+  background-color: ${(props) => props.selected ? "#FFFFFF20" : "transparent"};
   &:hover {
     background-color: ${(props) => props.theme.vivid.blue};
     color: #ffffff;

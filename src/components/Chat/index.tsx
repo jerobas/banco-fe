@@ -1,7 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
 import { BsFillChatDotsFill, BsFillSendFill } from "react-icons/bs";
 import { useParams } from "react-router-dom";
-import { getUserFromLocalStorage, socket } from "../../services/Auth";
+import { getUserFromLocalStorage } from "../../services/Auth";
+import { socket } from '../../hooks/useSocket'
 import { globalTheme } from "../../styles/theme/global.theme";
 import { ChatArea, ChatContainer, ChatInputContainer } from "./styles";
 

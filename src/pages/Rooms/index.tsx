@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { FaLock } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
+import { useSocket, socket } from "../../hooks/useSocket";
 
 import Layout from "../../components/Layout";
-import { socket, removeUserFromLastRoom } from "../../services/Auth";
+import { removeUserFromLastRoom } from "../../services/Auth";
 import CreateRoom from "../../components/CreateRoom";
 import JoinRoom from "../../components/JoinRoom";
 import {
@@ -14,41 +15,27 @@ import {
   Button,
   RoomStyle,
 } from "./styles";
+import { SocketEvent, Room } from "../../interfaces";
 
 export default function Rooms() {
+  const { emitAsync } = useSocket();
   const navigate = useNavigate();
 
   const [searchInput, setSearchInput] = useState("");
-  const [isVisible, setIsVisible] = useState(false);
   const [joinIsVisible, setJoinIsVisible] = useState(false);
-  const [selectedRoom, setSelectedRoom] = useState();
+  const [selectedRoom, setSelectedRoom] = useState<number>(0);
   const [full, setFull] = useState(false);
-  const [salas, setSalas] = useState([]);
+  const [salas, setSalas] = useState<{
+    salas: Room[];
+    defaultSalas: Room[];
+  }>({ salas: [], defaultSalas: [] });
 
-  const Room = ({ children, selected, onClick }) => (
-    <RoomStyle
-      onClick={onClick}
-      style={{ backgroundColor: selected ? "#FFFFFF20" : "transparent" }}
-    >
-      {children}
-    </RoomStyle>
-  );
-
-  const handleJoinRoom = ({ name, password }) => {
-    socket.emit("rooms:join", {
-      name: name,
-      password: password,
-    });
+  const handleJoinRoom = async ({ name, password }) => {
+    const { flag } = await emitAsync(SocketEvent.JOIN, { name, password })
+    if (flag) {
+      navigate(`/room/${salas.salas[selectedRoom].id}`)
+    }
   };
-  const CreateRoomButton = () => (
-    <Button
-      onClick={() => {
-        setIsVisible(true);
-      }}
-    >
-      Criar sala
-    </Button>
-  );
 
   const JoinRoomButton = () => (
     <Button
@@ -65,15 +52,7 @@ export default function Rooms() {
     </Button>
   );
 
-  const handleModalClose = (createdRoom) => {
-    if (createdRoom) {
-      navigate(`/room/${createdRoom.id}`);
-      setIsVisible(false);
-    } else {
-      setIsVisible(false);
-    }
-  };
-
+  // this should probably be in the room page
   useEffect(() => {
     const leaveRoom = async () => {
       await removeUserFromLastRoom();
@@ -82,37 +61,28 @@ export default function Rooms() {
   }, []);
 
   useEffect(() => {
-    setSearchInput("");
-    socket.emit("rooms:getRooms");
-    socket.on("lobby", (data) => {
-      setSalas({
-        salas: data,
-        defaultSalas: data,
-      });
-    });
-
-    socket.on("joined", (data) => {
-      if (data) {
-        // navigate(`/room/${salas?.salas[selectedRoom]?.id}`);
-        // socket.emit("rooms:getRooms");
-        // setJoinIsVisible(false);
-      }
-    });
-
-    return () => {
-      socket.off("updateRooms");
-      socket.off("joined");
-    };
+    const loadRooms = async () => {
+      const { rooms } = await emitAsync(SocketEvent.GET_ROOMS);
+      console.log(rooms)
+      setSalas({ salas: rooms, defaultSalas: rooms })
+    }
+    loadRooms();
   }, []);
 
   useEffect(() => {
     if (searchInput.length > 0) {
-      let sala = salas.defaultSalas?.filter((room) =>
-        room[0].startsWith(searchInput)
+      let filtradas = salas.defaultSalas?.filter((room) =>
+        room.name.toLowerCase().startsWith(searchInput.toLowerCase())
       );
-      setSalas({ ...salas, rooms: sala });
+      setSalas((prev) => ({
+        ...prev,
+        salas: filtradas
+      }));
     } else {
-      setSalas({ ...salas, rooms: salas.defaultSalas });
+      setSalas((prev) => ({
+        ...prev,
+        salas: prev.defaultSalas,
+      }));
     }
   }, [searchInput]);
 
@@ -140,7 +110,7 @@ export default function Rooms() {
               salas.salas.length > 0 &&
               salas.salas?.map((sala, index) => {
                 return (
-                  <Room
+                  <RoomStyle
                     selected={index === selectedRoom}
                     onClick={() => {
                       setSelectedRoom(index);
@@ -151,7 +121,7 @@ export default function Rooms() {
                       <p>
                         {index + 1} - {sala.name}
                       </p>
-                      {sala.password ? <FaLock /> : null}
+                      {sala.has_password ? <FaLock /> : null}
                     </Row>
                     <p
                       style={{
@@ -164,17 +134,16 @@ export default function Rooms() {
                     >
                       {sala.users.length}/{sala.limit_of_users}
                     </p>
-                  </Room>
+                  </RoomStyle>
                 );
               })}
           </div>
         </RoomsContainer>
         <Row style={{ gap: "20px" }}>
-          <CreateRoomButton />
+          <CreateRoom />
           <JoinRoomButton />
         </Row>
-        <CreateRoom isOpen={isVisible} handleClose={handleModalClose} />
-        <JoinRoom
+        {/* <JoinRoom
           isOpen={joinIsVisible}
           handleClose={() => { }}
           // handleClose={(data) => {
@@ -187,7 +156,7 @@ export default function Rooms() {
           //   } else setJoinIsVisible(false);
           // }}
           roomName={salas && selectedRoom + 1}
-        />
+        /> */}
       </RoomsPage>
     </Layout>
   );

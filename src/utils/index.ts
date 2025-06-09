@@ -1,5 +1,5 @@
 import { toast } from "react-toastify";
-import { socket } from "../services/Auth";
+import { socket } from "../hooks/useSocket";
 
 export const drawBoard = (
   canvas: HTMLCanvasElement,

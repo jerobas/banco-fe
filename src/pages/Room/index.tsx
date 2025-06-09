@@ -3,7 +3,7 @@ import { useParams } from "react-router-dom";
 
 import BoardCanvas from "../../components/Board";
 import Chat from "../../components/Chat";
-import { socket } from "../../services/Auth";
+import { socket } from "../../hooks/useSocket";
 import { Styles } from "./styles";
 
 export default function Room() {

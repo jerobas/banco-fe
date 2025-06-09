@@ -3,14 +3,14 @@ import axios, {
   InternalAxiosRequestConfig,
   AxiosResponse,
 } from "axios";
-import { socket } from "../services/Auth";
+import { socket } from "../hooks/useSocket";
 
 class ApiService {
   private axiosInstance: AxiosInstance;
 
   constructor() {
     this.axiosInstance = axios.create({
-      baseURL: "http://localhost:3333",
+      baseURL: "http://ec2-15-228-45-137.sa-east-1.compute.amazonaws.com:3033",
       headers: {
         "Content-Type": "application/json",
       },

@@ -1,12 +1,16 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { FaTimes } from "react-icons/fa";
 
-import Modal from "../Modal";
 import { Column } from "../../pages/Rooms/styles";
 import { Container, ErrorMessage } from "./styles";
 import ApiService from "../../api/index";
 import { IconContext } from "react-icons/lib";
 import { IRoom, ResponseWithMessageAndData } from "../../interfaces";
+import RoomsPageButton from "../../styles/RoomsPageButton.styles";
+import { useModal } from "../../hooks/useModals";
+import { useNavigate } from "react-router-dom";
+
+import ModalWrapper from "../../styles/ModalWrapper.styles"
 
 const CustomColumn = ({ children }) => (
   <Column
@@ -21,7 +25,8 @@ const CustomColumn = ({ children }) => (
   </Column>
 );
 
-export default function CreateRom({ handleClose, isOpen }) {
+function CreateRoomModal({ toggle }) {
+  const navigate = useNavigate();
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -35,18 +40,11 @@ export default function CreateRom({ handleClose, isOpen }) {
 
     const response = await ApiService.post<ResponseWithMessageAndData<"room", IRoom>>("/rooms", { name, password });
 
-    if (response.status === 201) {
-      handleClose({
-        id: response.data.room.id,
-        password: response.data.room.password,
-        hasPassword: response.data.room.password.length > 0,
-      });
-    }
+    if (response.status === 201) navigate(`/room/${response.data.room.id}`);
   };
 
   return (
-    <Modal
-      visible={isOpen}
+    <ModalWrapper
       hasHeight={true}
       height="min-content"
       hasWidth={true}
@@ -64,7 +62,7 @@ export default function CreateRom({ handleClose, isOpen }) {
         >
           <div style={{ height: "36px", width: "36px" }} />
           <h1>Criar Sala</h1>
-          <button onClick={() => handleClose()}>
+          <button onClick={toggle}>
             <IconContext.Provider value={{ size: "20px", color: "#ff0000" }}>
               <FaTimes />
             </IconContext.Provider>
@@ -100,6 +98,25 @@ export default function CreateRom({ handleClose, isOpen }) {
           </form>
         </main>
       </Container>
-    </Modal>
+    </ModalWrapper>
   );
 }
+
+const CreateRoom = () => {
+  const { modal, toggle } = useModal(() => <CreateRoomModal toggle={toggle} />)
+
+  const CreateRoomButton = () => (
+    <RoomsPageButton
+      onClick={toggle}
+    >
+      Criar sala
+    </RoomsPageButton>
+  );
+
+  return <>
+    <CreateRoomButton />
+    {modal}
+  </>
+}
+
+export default CreateRoom;

@@ -6,7 +6,7 @@ import React, {
   useEffect,
 } from "react";
 import { useParams } from "react-router-dom";
-import { socket } from "../../services/Auth";
+import { socket } from "../../hooks/useSocket";
 import { drawBoard } from "../../utils";
 import { BoardContainer } from "./styles";
 
