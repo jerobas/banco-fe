@@ -31,9 +31,9 @@ export default function Rooms() {
   }>({ salas: [], defaultSalas: [] });
 
   const handleJoinRoom = async ({ name, password }) => {
-    const { flag } = await emitAsync(SocketEvent.JOIN, { name, password })
+    const { flag } = await emitAsync(SocketEvent.JOIN, { name, password });
     if (flag) {
-      navigate(`/room/${salas.salas[selectedRoom].id}`)
+      navigate(`/room/${salas.salas[selectedRoom].id}`);
     }
   };
 
@@ -62,10 +62,9 @@ export default function Rooms() {
 
   useEffect(() => {
     const loadRooms = async () => {
-      const { rooms } = await emitAsync(SocketEvent.GET_ROOMS);
-      console.log(rooms)
-      setSalas({ salas: rooms, defaultSalas: rooms })
-    }
+      const rooms = await emitAsync(SocketEvent.GET_ROOMS);
+      setSalas({ salas: rooms, defaultSalas: rooms });
+    };
     loadRooms();
   }, []);
 
@@ -76,7 +75,7 @@ export default function Rooms() {
       );
       setSalas((prev) => ({
         ...prev,
-        salas: filtradas
+        salas: filtradas,
       }));
     } else {
       setSalas((prev) => ({
