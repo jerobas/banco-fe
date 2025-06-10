@@ -148,7 +148,7 @@ export type EmitEvents = {
 }
 
 export type ResponseEvents = {
-  [SocketEvent.CHAT]: { chatMessage: ChatMessage, flag: boolean },
+  [SocketEvent.CHAT]: { chatMessage: ChatMessage, system: boolean },
   [SocketEvent.GET_ROOMS]: { rooms: Room[] },
   [SocketEvent.JOIN]: { flag: boolean },
   [SocketEvent.UPDATE]: void,
