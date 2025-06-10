@@ -3,19 +3,21 @@ import { useParams } from "react-router-dom";
 
 import BoardCanvas from "../../components/Board";
 import Chat from "../../components/Chat";
-import { socket } from "../../hooks/useSocket";
+import { useSocket } from "../../hooks/useSocket";
 import { Styles } from "./styles";
+import { SocketEvent } from "../../interfaces";
 
 export default function Room() {
   const { id } = useParams();
+  const { emitAsync } = useSocket();
   const boardCanvasRef = useRef(null);
 
   useEffect(() => {
-    socket.emit("rooms:updateUserInGameIfReload", id);
-
-    return () => {
-      socket.emit("rooms:leave", id);
+    const update = async () => {
+      console.log(id);
+      if (id) await emitAsync(SocketEvent.UPDATE, { id: Number(id) });
     };
+    update();
   }, [id]);
 
   return (

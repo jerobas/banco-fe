@@ -1,4 +1,4 @@
-export interface IPlayer extends IPlayerDefaults {
+export interface IPlayer extends User {
   initialBoardPosition: {
     x: number;
     y: number;
@@ -76,7 +76,7 @@ export interface IApiResponse {
 }
 
 export interface IPlayerDefaultsWithRoom extends IPlayerDefaults {
-  room: Omit<IRoom, 'users' | 'current_user_turn'>;
+  room: Omit<IRoom, "users" | "current_user_turn">;
 }
 
 export type ResponseWithMessageAndData<K extends string, T> = {
@@ -93,18 +93,22 @@ export interface IWrapper {
 }
 
 export interface ILine {
-  progress: number
+  progress: number;
 }
 
 export interface IRoomStyle {
-  selected: boolean
+  selected: boolean;
 }
 
-interface User {
+export interface User {
   id: number;
   name: string;
   socket_id: string;
   ip_address: string;
+  money: string;
+  position: number;
+  numberOfEqualDices: number;
+  player_state: boolean;
 }
 
 interface ChatMessage {
@@ -112,56 +116,61 @@ interface ChatMessage {
   message: string;
   user_ip_address: string;
   user: User;
-  created_at: Date
+  created_at: Date;
 }
 
 export interface Room {
   id: number;
   name: string;
-  has_password: boolean;
   password?: string;
   game_state: boolean;
   limit_of_users: number;
-  users: User[]
+  users: User[];
+  current_user_turn: User | null;
+  owner_ip: string;
 }
 
 export enum SocketEvent {
-  CHAT = 'room:chat',
-  GET_ROOMS = 'rooms:getRooms',
-  JOIN = 'rooms:join',
-  UPDATE = 'rooms:updateUserInGameIfReload',
-  SETUP = 'rooms:setup',
-  START = 'game:start',
-  BUY = 'game:buy',
-  ROLL_DICES = 'game:rollDices'
+  CHAT = "room:chat",
+  GET_ROOMS = "rooms:getRooms",
+  JOIN = "rooms:join",
+  UPDATE = "rooms:updateUserInGameIfReload",
+  SETUP = "rooms:setup",
+  START = "game:start",
+  BUY = "game:buy",
+  ROLL_DICES = "game:rollDices",
 }
 
 export type EmitEvents = {
-  [SocketEvent.CHAT]: { roomId: number, message: string },
-  [SocketEvent.GET_ROOMS]: void,
-  [SocketEvent.JOIN]: { name: string; password: string },
-  [SocketEvent.UPDATE]: { id: number },
-  [SocketEvent.SETUP]: { id: number },
-  [SocketEvent.START]: { roomId: number },
-  [SocketEvent.BUY]: { roomId: number },
-  [SocketEvent.ROLL_DICES]: { roomId: number }
-}
+  [SocketEvent.CHAT]: { roomId: number; message: string };
+  [SocketEvent.GET_ROOMS]: void;
+  [SocketEvent.JOIN]: { name: string; password: string };
+  [SocketEvent.UPDATE]: { id: number };
+  [SocketEvent.SETUP]: { id: number };
+  [SocketEvent.START]: { roomId: number };
+  [SocketEvent.BUY]: { roomId: number };
+  [SocketEvent.ROLL_DICES]: { roomId: number };
+};
 
 export type ResponseEvents = {
-  [SocketEvent.CHAT]: { chatMessage: ChatMessage, system: boolean },
-  [SocketEvent.GET_ROOMS]: { rooms: Room[] },
-  [SocketEvent.JOIN]: { flag: boolean },
-  [SocketEvent.UPDATE]: void,
+  [SocketEvent.CHAT]: { chatMessage: ChatMessage; system: boolean };
+  [SocketEvent.GET_ROOMS]: { rooms: Room[] };
+  [SocketEvent.JOIN]: { flag: boolean };
+  [SocketEvent.UPDATE]: void;
   [SocketEvent.SETUP]: {
-    room: Room,
-    owner: User,
-    board_size: number
-  },
+    room: Room;
+    owner: User;
+    board_size: number;
+    has_password: boolean;
+  };
   [SocketEvent.START]: {
-    diceWinners: string[], type: boolean,
-    room: Room
-  },
-  [SocketEvent.BUY]: { user: User },
-  [SocketEvent.ROLL_DICES]: { users: User[] | undefined, currentTurn: User | null | undefined }
-}
-
+    diceWinners: string[];
+    type: boolean;
+    room: Room;
+  };
+  [SocketEvent.BUY]: { user: User };
+  [SocketEvent.ROLL_DICES]: {
+    users: User[] | undefined;
+    currentTurn: User | null | undefined;
+  };
+};

@@ -6,7 +6,6 @@ import React, {
   useEffect,
 } from "react";
 import { useParams } from "react-router-dom";
-import { socket } from "../../hooks/useSocket";
 import { drawBoard } from "../../utils";
 import { BoardContainer } from "./styles";
 
@@ -16,18 +15,13 @@ import CardComponent from "../Card";
 
 import { useConfigPosition } from "../../hooks/useConfigPosition";
 import { useBoardClick } from "../../hooks/useBoardClick";
-import { useResize } from "../../hooks/useResize";
+import { useSocket } from "../../hooks/useSocket";
 
-import {
-  IGameStateUpdated,
-  IPlayer,
-  IPlayerDefaults,
-  IPlayersStates,
-  IRoom,
-} from "../../interfaces";
+import { IPlayer, SocketEvent, User } from "../../interfaces";
 
 const BoardCanvas = forwardRef<HTMLCanvasElement, any>((_, ref) => {
   const { id } = useParams();
+  const { emitAsync } = useSocket();
 
   const [buttonDisabled, setButtonDisabled] = useState<boolean>(false);
   const [players, setPlayers] = useState<IPlayer[]>([]);
@@ -35,9 +29,9 @@ const BoardCanvas = forwardRef<HTMLCanvasElement, any>((_, ref) => {
     width: 80,
     height: 80,
   });
-  const [userOwner, setUserOwner] = useState<IPlayerDefaults>();
+  const [userOwner, setUserOwner] = useState<User>();
   const [ip, setIpOwner] = useState<string>();
-  const [currentTurn, setCurrentTurn] = useState<IPlayerDefaults>();
+  const [currentTurn, setCurrentTurn] = useState<User>();
   const [visible, setVisible] = useState<boolean>(false);
   const [isModalOpen, setModalOpen] = useState<boolean>(false);
   const [boardSize, setboardSize] = useState<number>(15);
@@ -45,73 +39,45 @@ const BoardCanvas = forwardRef<HTMLCanvasElement, any>((_, ref) => {
   const [isModalCardOpen, setModalCardOpen] = useState<boolean>(true);
 
   const playersRef = useRef<any>(players);
+  const canvasRect = useRef<any>(null);
 
   useLayoutEffect(() => {
     playersRef.current = players;
   }, [players]);
 
   useLayoutEffect(() => {
-    socket.emit("rooms:setup", id);
-    socket.on(
-      "setup",
-      ({
-        room,
-        owner,
-        board_size,
-      }: {
-        room: IRoom;
-        owner: IPlayerDefaults;
-        board_size: number;
-      }) => {
-        if (room.users) {
-          setboardSize(board_size);
+    const setup = async () => {
+      const { room, owner, board_size, has_password } = await emitAsync(
+        SocketEvent.SETUP,
+        {
+          id: Number(id),
+        }
+      );
 
-          const canvas = (ref as React.MutableRefObject<HTMLCanvasElement>)
-            .current;
+      if (room.users) {
+        setboardSize(board_size);
 
-          if (canvas) {
-            setTimeout(() => {
-              drawBoard(canvas, board_size, 80);
-              setUserOwner(owner);
-              setIpOwner(room.owner_ip);
+        const canvas = (ref as React.MutableRefObject<HTMLCanvasElement>)
+          .current;
 
-              const canvasRect = canvas.getBoundingClientRect();
+        if (canvas) {
+          setTimeout(() => {
+            drawBoard(canvas, board_size, 80);
+            setUserOwner(owner);
+            setIpOwner(room.owner_ip);
 
-              setCellSize({
-                width: canvasRect.width / boardSize,
-                height: canvasRect.height / boardSize,
-              });
-            }, 0);
-          }
+            const canvasRect = canvas.getBoundingClientRect();
+
+            setCellSize({
+              width: canvasRect.width / boardSize,
+              height: canvasRect.height / boardSize,
+            });
+          }, 0);
         }
       }
-    );
-
-    socket.on("gameStateUpdated", (data: IGameStateUpdated) =>
-      handleGameStateUpdate(data)
-    );
-
-    return () => {
-      socket.off("setup");
-      socket.off("gameStateUpdated");
     };
+    setup();
   }, [id, ref, boardSize]);
-
-  // useEffect(() => {
-  //   const handleResize = () => {
-  //     const canvas = (ref as React.MutableRefObject<HTMLCanvasElement>).current;
-  //     if (canvas) {
-  //       const canvasRect = canvas.getBoundingClientRect();
-  //       useResize(canvasRect, setPlayers, playersRef); // tem q corrigir a logica do resize
-  //     }
-  //   };
-
-  //   window.addEventListener("resize", handleResize);
-
-  //   return () => {
-  //     window.removeEventListener("resize", handleResize);
-  //   };
-  // }, [boardSize, ref]);
 
   useEffect(() => {
     const handleTabPress = (e: KeyboardEvent) => {
@@ -128,52 +94,46 @@ const BoardCanvas = forwardRef<HTMLCanvasElement, any>((_, ref) => {
     };
   }, [isModalOpen]);
 
-  const handleGameStateUpdate = (data: IGameStateUpdated) => {
-    if (data.type) {
+  const handleStartGame = async () => {
+    const { type, room } = await emitAsync(SocketEvent.START, {
+      roomId: Number(id),
+    });
+    if (type) {
       const canvas = (ref as React.MutableRefObject<HTMLCanvasElement>).current;
-      let canvasRect;
       if (canvas) {
-        canvasRect = canvas.getBoundingClientRect();
+        canvasRect.current = canvas.getBoundingClientRect();
         setCellSize({
-          width: canvasRect!.width / boardSize,
-          height: canvasRect!.height / boardSize,
+          width: canvasRect!.current.width / boardSize,
+          height: canvasRect!.current.height / boardSize,
         });
       }
       useConfigPosition(
-        data.room.users,
+        room.users,
         playersRef,
-        canvasRect,
+        canvasRect.current,
         boardSize,
         setPlayers,
         setButtonDisabled
       );
-      socket.on("playersStates", (data: IPlayersStates) => {
-        if (canvas) {
-          setCurrentTurn(data.currentTurn);
-          useConfigPosition(
-            data.users,
-            playersRef,
-            canvasRect,
-            boardSize,
-            setPlayers,
-            setButtonDisabled
-          );
-        }
-      });
-      setCurrentTurn(data.room.current_user_turn!);
+      setCurrentTurn(room.current_user_turn!);
       setVisible(true);
     }
   };
 
-  const handleStartGame = () => {
-    socket.emit("game:start", id);
-  };
-
-  const handleDice = () => {
+  const handleDice = async () => {
     setButtonDisabled(true);
-    socket.emit("game:rollDices", {
-      roomId: id,
+    let { users, currentTurn } = await emitAsync(SocketEvent.ROLL_DICES, {
+      roomId: Number(id),
     });
+    setCurrentTurn(currentTurn!);
+    useConfigPosition(
+      users!,
+      playersRef,
+      canvasRect.current,
+      boardSize,
+      setPlayers,
+      setButtonDisabled
+    );
   };
 
   useBoardClick(

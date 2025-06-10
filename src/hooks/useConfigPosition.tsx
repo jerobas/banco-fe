@@ -1,16 +1,16 @@
-import { IPlayer, IPlayerDefaults } from "../interfaces";
+import { IPlayer, User } from "../interfaces";
 import { pawnColors } from "../utils";
 import { useMovePawns } from "./useMovePawns";
 
 export const useConfigPosition = (
-  players_: IPlayerDefaults[],
+  players_: User[],
   playersRef: any,
   boardPosition: DOMRect | undefined,
   boardSize: number,
   setPlayers: React.Dispatch<React.SetStateAction<IPlayer[]>>,
   setButtonDisabled: React.Dispatch<React.SetStateAction<boolean>>
 ) => {
-  if (playersRef.current.length == 0) { //quando der start
+  if (playersRef.current.length == 0) {
     const initialBoardPosition = JSON.parse(JSON.stringify(boardPosition));
     let updatedPlayers = players_.map((player, index) => {
       return {
