@@ -10,7 +10,7 @@ import { useParams } from "react-router-dom";
 import { useBoardClick } from "../../hooks/useBoardClick";
 import { useConfigPosition } from "../../hooks/useConfigPosition";
 import { usePosition } from "../../hooks/usePosition";
-import { useSocket } from "../../hooks/useSocket";
+import { useSocket, socket } from "../../hooks/useSocket";
 import { IPlayer, SocketEvent, User } from "../../interfaces";
 import { drawBoard, pawnColors } from "../../utils";
 import CardComponent from "../Card";
@@ -29,7 +29,6 @@ const BoardCanvas = forwardRef<HTMLCanvasElement, any>((_, ref) => {
     height: 80,
   });
   const [userOwner, setUserOwner] = useState<User>();
-  const [ip, setIpOwner] = useState<string>();
   const [currentTurn, setCurrentTurn] = useState<User>();
   const [visible, setVisible] = useState<boolean>(false);
   const [isModalOpen, setModalOpen] = useState<boolean>(false);
@@ -53,7 +52,6 @@ const BoardCanvas = forwardRef<HTMLCanvasElement, any>((_, ref) => {
         setTimeout(() => {
           drawBoard(canvas, board_size, 80);
           setUserOwner(owner);
-          setIpOwner(owner.ip_address);
 
           const canvasRect = canvas.getBoundingClientRect();
 
@@ -197,11 +195,11 @@ const BoardCanvas = forwardRef<HTMLCanvasElement, any>((_, ref) => {
       {isModalCardOpen && (
         <CardComponent position={cardPosition} onClose={handleCloseModarCard} />
       )}
-      {!visible && userOwner?.ip_address === ip && (
+      {!visible && userOwner?.socket_id === socket.id && (
         <button onClick={handleStartGame}>Start</button>
       )}
       <div>
-        {currentTurn?.ip_address == ip && (
+        {currentTurn?.socket_id == socket.id && (
           <button onClick={() => handleDice()} disabled={buttonDisabled}>
             Rodar dados!
           </button>
