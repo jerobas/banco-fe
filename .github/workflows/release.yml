@@ -23,7 +23,7 @@ jobs:
 
       - name: Remove path
         run: |
-          ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.AWS_HOST }} "rm -rf /home/ubuntu/lopoly-fe"
+          ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.AWS_HOST }} "rm -rf /home/ubuntu/lopoly-fe/* /home/ubuntu/lopoly-fe/.* 2>/dev/null"
 
       - name: Use Node.js 22.9.0
         uses: actions/setup-node@v4
