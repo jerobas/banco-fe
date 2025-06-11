@@ -21,11 +21,12 @@ function JoinRoomModal({ roomName, roomId, hasPassword, toggle }) {
       return;
     }
 
-    const { flag } = await emitAsync(SocketEvent.JOIN, {
+    const response = await emitAsync(SocketEvent.JOIN, {
       name: roomName,
       password,
     });
-    if (flag) {
+    console.log(response)
+    if (response.flag) {
       navigate(`/room/${roomId}`);
     }
   };
