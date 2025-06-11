@@ -7,7 +7,7 @@ export default function Login() {
   const [error, formAction, isPending] = useActionState(handleLogin, false);
 
   return (
-    <div className="flex flex-col items-center gap-8 min-w-[600px]">
+    <div className="flex flex-col items-center gap-8 min-w-[600px] justify-center">
       <h1 className="text-3xl font-bold text-cyan-400">Bem-vindo ao Lopoly!</h1>
 
       <form className="flex flex-col gap-6 w-full max-w-sm" action={formAction}>
