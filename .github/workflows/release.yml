@@ -25,27 +25,21 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.AWS_HOST }} "rm -rf /home/ubuntu/lopoly-fe"
 
+      - name: Use Node.js 22.9.0
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.9.0
+
+      - name: Create .env file
+        run: echo "${{ secrets.ENV_FILE_LOPOLY_FE }}" > .env
+          
+      - name: Install and build locally
+        run: |
+          npm ci
+          npm run build
+
       - name: Copy to EC2
         run: |
-          rsync -avz --delete \
-            --exclude node_modules \
-            --rsync-path="mkdir -p /home/ubuntu/lopoly-fe && rsync" \
-            -e "ssh -o StrictHostKeyChecking=no" \
-            . ubuntu@${{ secrets.AWS_HOST }}:/home/ubuntu/lopoly-fe/
-
-      - name: Link persistent .env
-        run: |
-          ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.AWS_HOST }} "
-            ln -sf /home/ubuntu/envs/.env /home/ubuntu/lopoly-fe/.env
-          "
-
-      - name: Run setup and deploy on EC2
-        shell: bash
-        run: |
-          ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.AWS_HOST }} 'bash -l' << EOF 
-              cd /home/ubuntu/lopoly-fe
-              source /home/ubuntu/.nvm/nvm.sh
-              nvm use 22.9.0
-              npm install
-              npm run build
-          EOF
+         rsync -avz --delete \
+          -e "ssh -o StrictHostKeyChecking=no" \
+          ./dist/ ubuntu@${{ secrets.AWS_HOST }}:/home/ubuntu/lopoly-fe/
