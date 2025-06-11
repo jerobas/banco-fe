@@ -32,7 +32,6 @@ const CardComponent: React.FC<{
           `/cards/room/${id}/cards/${position}`
         );
         if (response?.data?.card) {
-          console.log(response.data.card)
           setCard(response.data.card);
           setIsVisible(true);
         }

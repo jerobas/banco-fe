@@ -31,7 +31,6 @@ export const useBoardClick = (
         clickedRow === 0 ||
         clickedRow === 14
       ) {
-        console.log(position);
         setCardPosition(position);
         setModalCardOpen(true);
       }

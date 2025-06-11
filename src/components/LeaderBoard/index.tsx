@@ -1,13 +1,5 @@
 import React, { useCallback, useEffect } from "react";
 import { FaCrown } from "react-icons/fa";
-
-import {
-  Crown,
-  ModalContent,
-  ModalOverlay,
-  PlayerRow,
-} from "./styles";
-
 import { IPlayer } from "../../interfaces";
 
 interface LeaderboardModalProps {
@@ -61,25 +53,33 @@ const LeaderboardModal: React.FC<LeaderboardModalProps> = ({
 
   return (
     <>
-      {players.length > 0 && (
-        <ModalOverlay isOpen={isOpen}>
-          <ModalContent id="modal-content">
-            <h2>Leaderboard</h2>
-            {sortedPlayers.map((player, i) => (
-              <PlayerRow key={player.id}>
-                <span>
-                  {player.name}
-                  {i == 0 && (
-                    <Crown>
-                      <FaCrown />
-                    </Crown>
-                  )}
-                </span>
-                <span>${player.money.toFixed(2)}</span>
-              </PlayerRow>
-            ))}
-          </ModalContent>
-        </ModalOverlay>
+      {players.length > 0 && isOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
+          <div
+            id="modal-content"
+            className="bg-[#1f1f1f] text-white w-full max-w-md p-6 rounded-lg shadow-lg"
+          >
+            <h2 className="text-2xl font-bold mb-4 text-center">Placar</h2>
+            <div className="space-y-2">
+              {sortedPlayers.map((player, i) => (
+                <div
+                  key={player.id}
+                  className="flex justify-between items-center p-2 bg-[#2a2a2a] rounded-md"
+                >
+                  <span className="flex items-center gap-2">
+                    {player.name}
+                    {i === 0 && (
+                      <FaCrown className="text-yellow-400 animate-pulse" />
+                    )}
+                  </span>
+                  <span className="font-semibold">
+                    ${player.money.toFixed(2)}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
       )}
     </>
   );

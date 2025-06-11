@@ -1,115 +1,91 @@
-import { useState } from 'react'
-import { FaTimes } from 'react-icons/fa'
+import { useState } from "react";
+import { FaTimes } from "react-icons/fa";
 
-import { Column } from '../../pages/Rooms/styles'
-import { Container, ErrorMessage } from './styles'
-import { IconContext } from 'react-icons/lib'
 import { useNavigate } from "react-router-dom";
 
-import { useSocket, socket } from "../../hooks/useSocket";
-import { SocketEvent, Room } from "../../interfaces";
-import ModalWrapper from '../../styles/ModalWrapper.styles';
+import { useSocket } from "../../hooks/useSocket";
+import { SocketEvent } from "../../interfaces";
+import ModalWrapper from "../../styles/ModalWrapper.styles";
 import { useModal } from "../../hooks/useModals";
 
-import RoomsPageButton from "../../styles/RoomsPageButton.styles";
-
-const CustomColumn = ({ children }) => (
-    <Column
-        style={{
-            alignItems: 'flex-start',
-            width: '100%',
-            gap: '10px',
-            marginBottom: '20px',
-        }}
-    >
-        {children}
-    </Column>
-)
-
 function JoinRoomModal({ roomName, roomId, toggle }) {
-    const [password, setPassword] = useState('')
-    const [error, setError] = useState('')
-    const { emitAsync } = useSocket();
-    const navigate = useNavigate();
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const { emitAsync } = useSocket();
+  const navigate = useNavigate();
 
-    const handleJoinRoom = async (e) => {
-        e.preventDefault()
-        if (!password.trim()) {
-            setError('A senha é obrigatória!')
-            return
-        }
-
-        const { flag } = await emitAsync(SocketEvent.JOIN, { name: roomName, password });
-        if (flag) {
-            navigate(`/room/${roomId}`);
-        }
+  const handleJoinRoom = async (e) => {
+    e.preventDefault();
+    if (!password.trim()) {
+      setError("A senha é obrigatória!");
+      return;
     }
 
-    return (
-        <ModalWrapper
-            hasHeight={true}
-            height="min-content"
-            hasWidth={true}
-            width="400px"
-        >
-            <Container>
-                <header
-                    style={{
-                        padding: '1rem',
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                    }}
-                >
-                    <div style={{ height: '36px', width: '36px' }} />
-                    <h1>{roomName}</h1>
-                    <button onClick={toggle}>
-                        <IconContext.Provider value={{ size: '20px', color: '#ff0000' }}>
-                            <FaTimes />
-                        </IconContext.Provider>
-                    </button>
-                </header>
-                <main>
-                    <form onSubmit={handleJoinRoom}>
-                        <Column>
-                            <CustomColumn>
-                                <label>Senha da sala: </label>
-                                <input
-                                    type="password"
-                                    autoComplete="off"
-                                    value={password}
-                                    onChange={(e) => {
-                                        setPassword(e.target.value)
-                                        setError('')
-                                    }}
-                                />
-                                {error && <ErrorMessage>{error}</ErrorMessage>}
-                            </CustomColumn>
-                            <button type="submit">Entrar</button>
-                        </Column>
-                    </form>
-                </main>
-            </Container>
-        </ModalWrapper>
-    )
+    const { flag } = await emitAsync(SocketEvent.JOIN, {
+      name: roomName,
+      password,
+    });
+    if (flag) {
+      navigate(`/room/${roomId}`);
+    }
+  };
+
+  return (
+    <ModalWrapper hasHeight height="min-content" hasWidth width="100%">
+      <div className="bg-[#222222] rounded-xl p-8 w-full max-w-md">
+        <header className="flex items-center justify-between mb-6">
+          <h1 className="text-xl font-bold text-cyan-400">{roomName}</h1>
+          <button onClick={toggle} className="text-red-600 hover:text-red-800">
+            <FaTimes size={20} />
+          </button>
+        </header>
+
+        <form onSubmit={handleJoinRoom} className="flex flex-col gap-6 w-full">
+          <input
+            type="password"
+            autoComplete="off"
+            placeholder={error ? "A senha é obrigatória!" : "Senha da sala"}
+            value={password}
+            onChange={(e) => {
+              setPassword(e.target.value);
+              setError("");
+            }}
+            className={`px-4 py-3 rounded-md bg-[#1e1e1e] text-white placeholder-gray-400 border ${
+              error ? "border-red-700" : "border-transparent"
+            } focus:outline-none focus:ring-2 focus:ring-cyan-500`}
+          />
+          <button
+            type="submit"
+            className="bg-cyan-600 hover:bg-cyan-700 transition-all duration-200 text-white py-3 rounded-md font-semibold disabled:opacity-50"
+          >
+            Entrar
+          </button>
+        </form>
+      </div>
+    </ModalWrapper>
+  );
 }
 
-const JoinRoom = ({ disabled, roomName, roomId }) => {
-    const { modal, toggle } = useModal(() => <JoinRoomModal toggle={toggle} roomId={roomId} roomName={roomName} />)
+const JoinRoom = ({ roomName, roomId }) => {
+  const { modal, toggle } = useModal(() => (
+    <JoinRoomModal toggle={toggle} roomId={roomId} roomName={roomName} />
+  ));
 
-    const JoinRoomButton = () => (
-        <RoomsPageButton
-            disabled={disabled}
-            onClick={toggle}
-        >
-            Entrar na sala
-        </RoomsPageButton>
-    );
+  const JoinRoomButton = () => (
+    <button
+      onClick={toggle}
+      className="bg-cyan-600 hover:bg-cyan-700 transition-all duration-200 text-white px-6 py-3 rounded-md font-semibold disabled:opacity-50"
+    >
+      Entrar na sala
+    </button>
+  );
 
-    return <>
-        <JoinRoomButton />
-        {modal}
+  return (
+    <>
+      <JoinRoomButton />
+      {modal}
     </>
-}
+  );
+};
 
 export default JoinRoom;

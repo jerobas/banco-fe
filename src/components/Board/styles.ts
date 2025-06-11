@@ -5,12 +5,10 @@ export const BoardContainer = styled.div`
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  height: 100vh;
-  margin: 0;
-  background-color: #f0f0f0;
-  padding: 10px;
+  padding: 120px;
 
   canvas {
+    background-color: #f0f0f0;
     position: relative;
     width: 100%;
     max-width: 800px;

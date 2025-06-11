@@ -10,10 +10,11 @@ class ApiService {
 
   constructor() {
     this.axiosInstance = axios.create({
-      baseURL: "http://ec2-15-228-45-137.sa-east-1.compute.amazonaws.com:3033",
+      baseURL: "http://localhost:3333",
       headers: {
         "Content-Type": "application/json",
       },
+      withCredentials: true,
     });
     this.initializeRequestInterceptor();
     this.initializeResponseInterceptor();

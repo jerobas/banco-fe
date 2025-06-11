@@ -1,29 +1,12 @@
 import { useState } from "react";
 import { FaTimes } from "react-icons/fa";
 
-import { Column } from "../../pages/Rooms/styles";
-import { Container, ErrorMessage } from "./styles";
 import ApiService from "../../api/index";
-import { IconContext } from "react-icons/lib";
 import { IRoom, ResponseWithMessageAndData } from "../../interfaces";
-import RoomsPageButton from "../../styles/RoomsPageButton.styles";
 import { useModal } from "../../hooks/useModals";
 import { useNavigate } from "react-router-dom";
 
-import ModalWrapper from "../../styles/ModalWrapper.styles"
-
-const CustomColumn = ({ children }) => (
-  <Column
-    style={{
-      alignItems: "flex-start",
-      width: "100%",
-      gap: "0.08rem",
-      marginBottom: "20px",
-    }}
-  >
-    {children}
-  </Column>
-);
+import ModalWrapper from "../../styles/ModalWrapper.styles";
 
 function CreateRoomModal({ toggle }) {
   const navigate = useNavigate();
@@ -38,85 +21,81 @@ function CreateRoomModal({ toggle }) {
       return;
     }
 
-    const response = await ApiService.post<ResponseWithMessageAndData<"room", IRoom>>("/rooms", { name, password });
+    const response = await ApiService.post<
+      ResponseWithMessageAndData<"room", IRoom>
+    >("/rooms", { name, password });
 
     if (response.status === 201) navigate(`/room/${response.data.room.id}`);
   };
 
   return (
-    <ModalWrapper
-      hasHeight={true}
-      height="min-content"
-      hasWidth={true}
-      width="400px"
-    >
-      <Container>
-        <header
-          style={{
-            padding: "1rem",
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            border: "none",
-          }}
-        >
-          <div style={{ height: "36px", width: "36px" }} />
-          <h1>Criar Sala</h1>
-          <button onClick={toggle}>
-            <IconContext.Provider value={{ size: "20px", color: "#ff0000" }}>
-              <FaTimes />
-            </IconContext.Provider>
+    <ModalWrapper hasHeight height="min-content" hasWidth width="100%">
+      <div className="bg-[#222222] rounded-xl p-8 w-full max-w-md">
+        <header className="flex items-center justify-between mb-6">
+          <h1 className="text-xl font-bold text-cyan-400">Criar nova sala</h1>
+          <button
+            onClick={toggle}
+            className="text-red-600 hover:text-red-800 cursor-pointer"
+          >
+            <FaTimes size={20} />
           </button>
         </header>
-        <main>
-          <form onSubmit={handleCreateRoom}>
-            <Column>
-              <CustomColumn>
-                <label>Nome da sala: </label>
-                <input
-                  type="text"
-                  autoComplete="off"
-                  value={name}
-                  onChange={(e) => {
-                    setName(e.target.value);
-                    setError("");
-                  }}
-                />
-                {error && <ErrorMessage>{error}</ErrorMessage>}
-              </CustomColumn>
-              <CustomColumn>
-                <label>Senha da sala: </label>
-                <input
-                  type="password"
-                  autoComplete="off"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                />
-              </CustomColumn>
-              <button type="submit">Criar</button>
-            </Column>
-          </form>
-        </main>
-      </Container>
+
+        <form
+          onSubmit={handleCreateRoom}
+          className="flex flex-col gap-6 w-full"
+        >
+          <input
+            type="text"
+            autoComplete="off"
+            placeholder={error ? "O nome é necessário" : "Nome da sala"}
+            value={name}
+            onChange={(e) => {
+              setName(e.target.value);
+              setError("");
+            }}
+            className={`px-4 py-3 rounded-md bg-[#1e1e1e] text-white placeholder-gray-400 border ${
+              error ? "border-red-700" : "border-transparent"
+            } focus:outline-none focus:ring-2 focus:ring-cyan-500`}
+          />
+          <input
+            type="password"
+            autoComplete="off"
+            placeholder="Senha da sala (opcional)"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="px-4 py-3 rounded-md bg-[#1e1e1e] text-white placeholder-gray-400 border border-transparent focus:outline-none focus:ring-2 focus:ring-cyan-500"
+          />
+          <button
+            type="submit"
+            className="bg-cyan-600 hover:bg-cyan-700 transition-all duration-200 text-white py-3 rounded-md font-semibold disabled:opacity-50"
+          >
+            Criar
+          </button>
+        </form>
+      </div>
     </ModalWrapper>
   );
 }
 
 const CreateRoom = () => {
-  const { modal, toggle } = useModal(() => <CreateRoomModal toggle={toggle} />)
+  const { modal, toggle } = useModal(() => <CreateRoomModal toggle={toggle} />);
 
   const CreateRoomButton = () => (
-    <RoomsPageButton
+    <button
       onClick={toggle}
+      className="bg-cyan-600 hover:bg-cyan-700 transition-all duration-200 text-white px-6 py-3 rounded-md font-semibold disabled:opacity-50"
     >
       Criar sala
-    </RoomsPageButton>
+    </button>
   );
 
-  return <>
-    <CreateRoomButton />
-    {modal}
-  </>
-}
+  return (
+    <>
+      <CreateRoomButton />
+      {modal}
+    </>
+  );
+};
 
 export default CreateRoom;

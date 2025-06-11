@@ -2,7 +2,9 @@ import { useRef } from "react";
 import { io, Socket } from "socket.io-client";
 import { EmitEvents, ResponseEvents } from "../interfaces";
 
-export const socket = io(import.meta.env.VITE_SOCKET_API_AWS);
+export const socket = io(import.meta.env.VITE_SOCKET_API_AWS, {
+  withCredentials: true,
+});
 
 export const useSocket = () => {
   const socketRef = useRef<Socket>(socket);
@@ -13,7 +15,7 @@ export const useSocket = () => {
   ): Promise<ResponseEvents[T]> => {
     return new Promise((resolve, reject) => {
       const callback = (response: ResponseEvents[T]) => resolve(response);
-      
+
       const payload = [...(args?.length ? args : [{}]), callback];
 
       socketRef.current.emit(event, ...payload);

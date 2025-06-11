@@ -1,25 +1,39 @@
-import { ToastContainer } from "react-toastify";
-import RoutesPage from "./routes/index.jsx";
 import { useEffect } from "react";
-import { setSocketToastifyConnection } from "./utils/index.js";
-
+import { BrowserRouter as Router, useLocation } from "react-router-dom";
+import { ToastContainer } from "react-toastify";
 import { ThemeProvider } from "styled-components";
-import GlobalStyle from "./styles/global.styles";
-import { globalTheme } from "./styles/theme/global.theme";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+
+import { Background } from "./components/Background/index.js";
+import RoutesPage from "./routes/index.jsx";
+import { globalTheme } from "./styles/theme/global.theme";
+import { setSocketToastifyConnection } from "./utils/index.js";
 
 const queryClient = new QueryClient();
 
-const App = () => {
-  useEffect(setSocketToastifyConnection, [])
+const AppContent = () => {
+  const location = useLocation();
 
-  return <ThemeProvider theme={globalTheme}>
-    <QueryClientProvider client={queryClient}>
-      <GlobalStyle />
-      <ToastContainer aria-label={undefined} />
+  return (
+    <Background route={location.pathname}>
       <RoutesPage />
-    </QueryClientProvider>
-  </ThemeProvider>
-}
+    </Background>
+  );
+};
+
+const App = () => {
+  useEffect(setSocketToastifyConnection, []);
+
+  return (
+    <ThemeProvider theme={globalTheme}>
+      <QueryClientProvider client={queryClient}>
+        <Router>
+          <ToastContainer aria-label={undefined} />
+          <AppContent />
+        </Router>
+      </QueryClientProvider>
+    </ThemeProvider>
+  );
+};
 
 export default App;

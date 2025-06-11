@@ -1,5 +1,6 @@
 import { toast } from "react-toastify";
 import { socket } from "../hooks/useSocket";
+import { SocketEvent } from "../interfaces";
 
 export const drawBoard = (
   canvas: HTMLCanvasElement,
@@ -67,7 +68,7 @@ export const drawBoard = (
       centerSize - deckSize * 2
     );
   };
-  centerImage.src = 'centerImageUrl';
+  centerImage.src = "centerImageUrl";
 };
 
 export const pawnColors = {
@@ -78,7 +79,7 @@ export const pawnColors = {
 };
 
 export const setSocketToastifyConnection = () => {
-  socket.on("errorMessage", (data) => {
+  socket.on(SocketEvent.MESSAGE_ERROR, (data) => {
     toast.error(data, {
       position: "top-center",
       autoClose: 5000,
@@ -88,7 +89,7 @@ export const setSocketToastifyConnection = () => {
       draggable: true,
     });
   });
-  socket.on("eventMessage", (data) => {
+  socket.on(SocketEvent.MESSAGE_EVENT, (data) => {
     toast.info(data, {
       position: "top-center",
       autoClose: 5000,
@@ -102,4 +103,4 @@ export const setSocketToastifyConnection = () => {
     socket.off("errorMessage");
     socket.off("eventMessage");
   };
-}
+};

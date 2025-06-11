@@ -139,6 +139,8 @@ export enum SocketEvent {
   START = "game:start",
   BUY = "game:buy",
   ROLL_DICES = "game:rollDices",
+  MESSAGE_ERROR = "errorMessage",
+  MESSAGE_EVENT = "eventMessage",
 }
 
 export type EmitEvents = {
@@ -156,7 +158,7 @@ export type ResponseEvents = {
   [SocketEvent.CHAT]: { chatMessage: ChatMessage; system: boolean };
   [SocketEvent.GET_ROOMS]: { rooms: Room[] };
   [SocketEvent.JOIN]: { flag: boolean };
-  [SocketEvent.UPDATE]: void;
+  [SocketEvent.UPDATE]: void | { room: Room; board_size: number; owner: User };
   [SocketEvent.SETUP]: {
     room: Room;
     owner: User;

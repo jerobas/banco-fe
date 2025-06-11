@@ -1,23 +1,22 @@
 import React, {
+  forwardRef,
+  useEffect,
+  useLayoutEffect,
   useRef,
   useState,
-  forwardRef,
-  useLayoutEffect,
-  useEffect,
 } from "react";
 import { useParams } from "react-router-dom";
-import { drawBoard } from "../../utils";
-import { BoardContainer } from "./styles";
 
+import { useBoardClick } from "../../hooks/useBoardClick";
+import { useConfigPosition } from "../../hooks/useConfigPosition";
+import { usePosition } from "../../hooks/usePosition";
+import { useSocket } from "../../hooks/useSocket";
+import { IPlayer, SocketEvent, User } from "../../interfaces";
+import { drawBoard, pawnColors } from "../../utils";
+import CardComponent from "../Card";
 import LeaderboardModal from "../LeaderBoard";
 import Pawn from "../Pawn";
-import CardComponent from "../Card";
-
-import { useConfigPosition } from "../../hooks/useConfigPosition";
-import { useBoardClick } from "../../hooks/useBoardClick";
-import { useSocket } from "../../hooks/useSocket";
-
-import { IPlayer, SocketEvent, User } from "../../interfaces";
+import { BoardContainer } from "./styles";
 
 const BoardCanvas = forwardRef<HTMLCanvasElement, any>((_, ref) => {
   const { id } = useParams();
@@ -41,42 +40,82 @@ const BoardCanvas = forwardRef<HTMLCanvasElement, any>((_, ref) => {
   const playersRef = useRef<any>(players);
   const canvasRect = useRef<any>(null);
 
+  const handleUpdateAndSetup = (
+    board_size: number,
+    owner: User
+  ): Promise<DOMRect> => {
+    return new Promise((resolve) => {
+      setboardSize(board_size);
+
+      const canvas = (ref as React.MutableRefObject<HTMLCanvasElement>).current;
+
+      if (canvas) {
+        setTimeout(() => {
+          drawBoard(canvas, board_size, 80);
+          setUserOwner(owner);
+          setIpOwner(owner.ip_address);
+
+          const canvasRect = canvas.getBoundingClientRect();
+
+          setCellSize({
+            width: canvasRect.width / board_size,
+            height: canvasRect.height / board_size,
+          });
+
+          resolve(canvasRect);
+        }, 0);
+      }
+    });
+  };
+
   useLayoutEffect(() => {
     playersRef.current = players;
   }, [players]);
 
   useLayoutEffect(() => {
     const setup = async () => {
-      const { room, owner, board_size, has_password } = await emitAsync(
-        SocketEvent.SETUP,
-        {
-          id: Number(id),
-        }
-      );
+      const { room, owner, board_size } = await emitAsync(SocketEvent.SETUP, {
+        id: Number(id),
+      });
 
       if (room.users) {
-        setboardSize(board_size);
-
-        const canvas = (ref as React.MutableRefObject<HTMLCanvasElement>)
-          .current;
-
-        if (canvas) {
-          setTimeout(() => {
-            drawBoard(canvas, board_size, 80);
-            setUserOwner(owner);
-            setIpOwner(room.owner_ip);
-
-            const canvasRect = canvas.getBoundingClientRect();
-
-            setCellSize({
-              width: canvasRect.width / boardSize,
-              height: canvasRect.height / boardSize,
-            });
-          }, 0);
-        }
+        canvasRect.current = await handleUpdateAndSetup(board_size, owner);
       }
     };
-    setup();
+    const update = async () => {
+      const response = await emitAsync(SocketEvent.UPDATE, { id: Number(id) });
+      const { room, board_size, owner } = response!;
+
+      if (room && room.game_state) {
+        const canvasRect_ = await handleUpdateAndSetup(board_size, owner);
+        canvasRect.current = canvasRect_;
+        if (canvasRect_) {
+          let updatedPlayers = room.users.map((player, index) => {
+            return {
+              initialBoardPosition: {
+                x: canvasRect_!.left,
+                y: canvasRect_!.top - 29.5,
+                width: canvasRect_!.width,
+                height: canvasRect_!.height,
+              },
+              position_fe: usePosition(
+                player.position,
+                board_size,
+                canvasRect_
+              ),
+              color: pawnColors[index],
+              ...player,
+            };
+          });
+          setPlayers(updatedPlayers);
+          setCurrentTurn(room.current_user_turn!);
+          setVisible(true);
+        }
+      } else if (room && !room.game_state) {
+        setup();
+      }
+    };
+    update();
   }, [id, ref, boardSize]);
 
   useEffect(() => {
