@@ -11,8 +11,12 @@ import { SocketEvent } from "../../interfaces";
 import { removeUserFromLastRoom } from "../../services/Auth";
 
 export default function Rooms() {
-  const { emitAsync } = useSocket();
+  const { emitAsync, onEvent } = useSocket();
   const loadRooms = async () => await emitAsync(SocketEvent.GET_ROOMS);
+
+  onEvent(SocketEvent.GET_ROOMS, ({ rooms }) => {
+    console.log(rooms);
+  });
 
   const { isPending, data } = useQuery({
     queryKey: ["loadRooms"],

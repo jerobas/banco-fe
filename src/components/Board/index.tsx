@@ -20,7 +20,7 @@ import { BoardContainer } from "./styles";
 
 const BoardCanvas = forwardRef<HTMLCanvasElement, any>((_, ref) => {
   const { id } = useParams();
-  const { emitAsync } = useSocket();
+  const { emitAsync, onEvent } = useSocket();
 
   const [buttonDisabled, setButtonDisabled] = useState<boolean>(false);
   const [players, setPlayers] = useState<IPlayer[]>([]);
@@ -38,6 +38,10 @@ const BoardCanvas = forwardRef<HTMLCanvasElement, any>((_, ref) => {
 
   const playersRef = useRef<any>(players);
   const canvasRect = useRef<any>(null);
+
+  useLayoutEffect(() => {
+    playersRef.current = players;
+  }, [players]);
 
   const handleUpdateAndSetup = (
     board_size: number,
@@ -66,24 +70,20 @@ const BoardCanvas = forwardRef<HTMLCanvasElement, any>((_, ref) => {
     });
   };
 
-  useLayoutEffect(() => {
-    playersRef.current = players;
-  }, [players]);
-
-  useLayoutEffect(() => {
-    const setup = async () => {
-      const { room, owner, board_size } = await emitAsync(SocketEvent.SETUP, {
-        id: Number(id),
-      });
-
+  onEvent(
+    SocketEvent.SETUP,
+    async ({ room, owner, board_size }) => {
       if (room.users) {
         canvasRect.current = await handleUpdateAndSetup(board_size, owner);
       }
-    };
-    const update = async () => {
-      const response = await emitAsync(SocketEvent.UPDATE, { id: Number(id) });
-      const { room, board_size, owner } = response!;
+    },
+    ref
+  );
 
+  onEvent(
+    SocketEvent.UPDATE,
+    async (response) => {
+      const { room, board_size, owner } = response!;
       if (room && room.game_state) {
         const canvasRect_ = await handleUpdateAndSetup(board_size, owner);
         canvasRect.current = canvasRect_;
@@ -109,12 +109,66 @@ const BoardCanvas = forwardRef<HTMLCanvasElement, any>((_, ref) => {
           setCurrentTurn(room.current_user_turn!);
           setVisible(true);
         }
-      } else if (room && !room.game_state) {
-        setup();
       }
+    },
+    ref
+  );
+
+  onEvent(
+    SocketEvent.START,
+    ({ type, room }) => {
+      if (type) {
+        const canvas = (ref as React.MutableRefObject<HTMLCanvasElement>)
+          .current;
+        if (canvas) {
+          canvasRect.current = canvas.getBoundingClientRect();
+          setCellSize({
+            width: canvasRect!.current.width / boardSize,
+            height: canvasRect!.current.height / boardSize,
+          });
+        }
+        useConfigPosition(
+          room.users,
+          playersRef,
+          canvasRect.current,
+          boardSize,
+          setPlayers,
+          setButtonDisabled
+        );
+        setCurrentTurn(room.current_user_turn!);
+        setVisible(true);
+      }
+    },
+    ref
+  );
+
+  onEvent(
+    SocketEvent.ROLL_DICES,
+    ({ users, currentTurn }) => {
+      setCurrentTurn(currentTurn!);
+      useConfigPosition(
+        users!,
+        playersRef,
+        canvasRect.current,
+        boardSize,
+        setPlayers,
+        setButtonDisabled
+      );
+    },
+    ref
+  );
+
+  useLayoutEffect(() => {
+    const setup = async () => {
+      await emitAsync(SocketEvent.SETUP, { id: Number(id) });
+    };
+    const update = async () => {
+      const response = await emitAsync(SocketEvent.UPDATE, { id: Number(id) });
+      const { room } = response!;
+      if (room && !room.game_state) setup();
     };
     update();
-  }, [id, ref, boardSize]);
+  }, [id, ref]);
 
   useEffect(() => {
     const handleTabPress = (e: KeyboardEvent) => {
@@ -132,45 +186,16 @@ const BoardCanvas = forwardRef<HTMLCanvasElement, any>((_, ref) => {
   }, [isModalOpen]);
 
   const handleStartGame = async () => {
-    const { type, room } = await emitAsync(SocketEvent.START, {
+    await emitAsync(SocketEvent.START, {
       roomId: Number(id),
     });
-    if (type) {
-      const canvas = (ref as React.MutableRefObject<HTMLCanvasElement>).current;
-      if (canvas) {
-        canvasRect.current = canvas.getBoundingClientRect();
-        setCellSize({
-          width: canvasRect!.current.width / boardSize,
-          height: canvasRect!.current.height / boardSize,
-        });
-      }
-      useConfigPosition(
-        room.users,
-        playersRef,
-        canvasRect.current,
-        boardSize,
-        setPlayers,
-        setButtonDisabled
-      );
-      setCurrentTurn(room.current_user_turn!);
-      setVisible(true);
-    }
   };
 
   const handleDice = async () => {
     setButtonDisabled(true);
-    let { users, currentTurn } = await emitAsync(SocketEvent.ROLL_DICES, {
+    await emitAsync(SocketEvent.ROLL_DICES, {
       roomId: Number(id),
     });
-    setCurrentTurn(currentTurn!);
-    useConfigPosition(
-      users!,
-      playersRef,
-      canvasRect.current,
-      boardSize,
-      setPlayers,
-      setButtonDisabled
-    );
   };
 
   useBoardClick(
@@ -181,10 +206,6 @@ const BoardCanvas = forwardRef<HTMLCanvasElement, any>((_, ref) => {
     setModalCardOpen
   );
 
-  const handleCloseModarCard = () => {
-    setModalCardOpen(false);
-  };
-
   return (
     <BoardContainer id="container">
       <LeaderboardModal
@@ -193,7 +214,10 @@ const BoardCanvas = forwardRef<HTMLCanvasElement, any>((_, ref) => {
         onClose={() => setModalOpen(false)}
       />
       {isModalCardOpen && (
-        <CardComponent position={cardPosition} onClose={handleCloseModarCard} />
+        <CardComponent
+          position={cardPosition}
+          onClose={() => setModalCardOpen(false)}
+        />
       )}
       {!visible && userOwner?.socket_id === socket.id && (
         <button onClick={handleStartGame}>Start</button>
