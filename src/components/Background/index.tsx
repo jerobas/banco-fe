@@ -23,7 +23,7 @@ export const Background = ({
         {isRoom ? (
           children
         ) : (
-          <div className="bg-[#222222] rounded-xl shadow-lg w-fit max-w-md py-16 px-6 text-center">
+          <div className="bg-[#222222] rounded-xl shadow-lg w-fit max-w-[640px] py-16 px-6 text-center">
             {" "}
             {children}
           </div>
