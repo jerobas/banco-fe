@@ -35,7 +35,7 @@ export default function Rooms() {
     checkIfRooms() && selectedRoom !== null ? rooms[selectedRoom].name : "";
 
   return (
-    <div className="flex flex-col items-center gap-8  text-white min-w-[640px]">
+    <div className="flex flex-col items-center gap-8  text-white min-w-[600px]">
       <h1 className="text-3xl font-bold text-cyan-400">
         {checkIfRooms() ? "Escolha uma sala" : "Crie uma sala para começar!"}
       </h1>
