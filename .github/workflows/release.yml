@@ -1,0 +1,51 @@
+name: Deploy to EC2
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  deploy:
+    name: Deploy Node.js to EC2
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          submodules: recursive
+
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.7.0
+        with:
+          ssh-private-key: ${{ secrets.AWS_KEY }}
+
+      - name: Remove path
+        run: |
+          ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.AWS_HOST }} "rm -rf /home/ubuntu/lopoly-fe"
+
+      - name: Copy to EC2
+        run: |
+          rsync -avz --delete \
+            --exclude node_modules \
+            --rsync-path="mkdir -p /home/ubuntu/lopoly-fe && rsync" \
+            -e "ssh -o StrictHostKeyChecking=no" \
+            . ubuntu@${{ secrets.AWS_HOST }}:/home/ubuntu/lopoly-fe/
+
+      - name: Link persistent .env
+        run: |
+          ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.AWS_HOST }} "
+            ln -sf /home/ubuntu/envs/.env /home/ubuntu/lopoly-fe/.env
+          "
+
+      - name: Run setup and deploy on EC2
+        shell: bash
+        run: |
+          ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.AWS_HOST }} 'bash -l' << EOF 
+              cd /home/ubuntu/lopoly-fe
+              source /home/ubuntu/.nvm/nvm.sh
+              nvm use 22.9.0
+              npm install
+              npm run build
+          EOF

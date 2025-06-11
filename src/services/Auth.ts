@@ -1,10 +1,16 @@
-import ApiService from '../api/index';
-import { IPlayerDefaultsWithRoom } from '../interfaces';
+import Cookies from "js-cookie";
+import ApiService from "../api/index";
+import { IPlayerDefaultsWithRoom } from "../interfaces";
 
-export const TOKEN_KEY_USER = "@bi-user";
+const KEY = import.meta.env.VITE_KEY_NAME || "lopoly-token";
 
 export const isAlreadyAuthenticated = async () => {
   try {
+    const token = Cookies.get(KEY);
+    if (!token) {
+      deleteUserFromStorage();
+      return false;
+    }
     const data = await ApiService.get("/users/me");
     return !!data;
   } catch (error) {
@@ -14,9 +20,7 @@ export const isAlreadyAuthenticated = async () => {
 };
 
 export const removeUserFromLastRoom = async () => {
-  let user = JSON.parse(
-    localStorage.getItem(TOKEN_KEY_USER) || JSON.stringify(null)
-  );
+  let user = JSON.parse(localStorage.getItem(KEY) || JSON.stringify(null));
   let { data } = await ApiService.get<IPlayerDefaultsWithRoom>(
     `/users/${user.id}`
   );
@@ -31,13 +35,13 @@ export const removeUserFromLastRoom = async () => {
 };
 
 export const saveUserInStorage = (user) => {
-  localStorage.setItem(TOKEN_KEY_USER, user);
+  localStorage.setItem(KEY, user);
 };
 
 export const getUserFromLocalStorage = () => {
-  return localStorage.getItem(TOKEN_KEY_USER);
+  return localStorage.getItem(KEY);
 };
 
 export const deleteUserFromStorage = () => {
-  localStorage.removeItem(TOKEN_KEY_USER);
+  localStorage.removeItem(KEY);
 };

@@ -10,7 +10,9 @@ class ApiService {
 
   constructor() {
     this.axiosInstance = axios.create({
-      baseURL: "http://localhost:3333",
+      baseURL: `http://${import.meta.env.VITE_API_URL}:${
+        import.meta.env.VITE_API_PORT
+      }`,
       headers: {
         "Content-Type": "application/json",
       },

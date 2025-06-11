@@ -2,9 +2,12 @@ import { useRef } from "react";
 import { io, Socket } from "socket.io-client";
 import { EmitEvents, ResponseEvents } from "../interfaces";
 
-export const socket = io(import.meta.env.VITE_SOCKET_API_AWS, {
-  withCredentials: true,
-});
+export const socket = io(
+  `${import.meta.env.VITE_API_URL}:${import.meta.env.VITE_API_PORT}/`,
+  {
+    withCredentials: true,
+  }
+);
 
 export const useSocket = () => {
   const socketRef = useRef<Socket>(socket);
