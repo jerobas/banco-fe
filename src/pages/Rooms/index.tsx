@@ -17,10 +17,17 @@ export default function Rooms() {
   const { isPending, data } = useQuery({
     queryKey: ["loadRooms"],
     queryFn: loadRooms,
+    refetchOnWindowFocus: true,
+    staleTime: 0,
   });
+
+  console.log("data:::", data)
 
   const [selectedRoom, setSelectedRoom] = useState<number | null>(null);
   const { Searchbar, rooms } = useFilterSearchbar(isPending ? [] : data);
+
+  console.log("rooms:::", rooms)
+
 
   useEffect(() => {
     removeUserFromLastRoom();
