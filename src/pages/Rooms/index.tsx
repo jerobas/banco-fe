@@ -21,13 +21,8 @@ export default function Rooms() {
     staleTime: 0,
   });
 
-  console.log("data:::", data)
-
   const [selectedRoom, setSelectedRoom] = useState<number | null>(null);
   const { Searchbar, rooms } = useFilterSearchbar(isPending ? [] : data);
-
-  console.log("rooms:::", rooms)
-
 
   useEffect(() => {
     removeUserFromLastRoom();
@@ -40,7 +35,7 @@ export default function Rooms() {
     checkIfRooms() && selectedRoom !== null ? rooms[selectedRoom].name : "";
 
   return (
-    <div className="flex flex-col items-center gap-8  text-white">
+    <div className="flex flex-col items-center gap-8  text-white min-h-[600px]">
       <h1 className="text-3xl font-bold text-cyan-400">
         {checkIfRooms() ? "Escolha uma sala" : "Crie uma sala para começar!"}
       </h1>
@@ -67,7 +62,7 @@ export default function Rooms() {
                 <span>
                   {index + 1} - {sala.name}
                 </span>
-                {sala?.has_password && <FaLock />}
+                {sala?.password && <FaLock />}
               </div>
               <span
                 className={`text-sm font-medium ${
