@@ -12,7 +12,6 @@ export const useHandleLogin = () => {
 
     try {
       const response = await ApiService.post("/users", { name });
-      console.log(response)
       if (response.status === 201) {
         saveUserInStorage(JSON.stringify(response.data));
         navigate("/");

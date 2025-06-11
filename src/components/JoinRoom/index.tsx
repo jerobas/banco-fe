@@ -8,7 +8,7 @@ import { SocketEvent } from "../../interfaces";
 import ModalWrapper from "../../styles/ModalWrapper.styles";
 import { useModal } from "../../hooks/useModals";
 
-function JoinRoomModal({ roomName, roomId, toggle }) {
+function JoinRoomModal({ roomName, roomId, hasPassword, toggle }) {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const { emitAsync } = useSocket();
@@ -16,7 +16,7 @@ function JoinRoomModal({ roomName, roomId, toggle }) {
 
   const handleJoinRoom = async (e) => {
     e.preventDefault();
-    if (!password.trim()) {
+    if (hasPassword && !password.trim()) {
       setError("A senha é obrigatória!");
       return;
     }
@@ -41,19 +41,22 @@ function JoinRoomModal({ roomName, roomId, toggle }) {
         </header>
 
         <form onSubmit={handleJoinRoom} className="flex flex-col gap-6 w-full">
-          <input
-            type="password"
-            autoComplete="off"
-            placeholder={error ? "A senha é obrigatória!" : "Senha da sala"}
-            value={password}
-            onChange={(e) => {
-              setPassword(e.target.value);
-              setError("");
-            }}
-            className={`px-4 py-3 rounded-md bg-[#1e1e1e] text-white placeholder-gray-400 border ${
-              error ? "border-red-700" : "border-transparent"
-            } focus:outline-none focus:ring-2 focus:ring-cyan-500`}
-          />
+          {hasPassword && (
+            <input
+              type="password"
+              autoComplete="off"
+              placeholder={error ? "A senha é obrigatória!" : "Senha da sala"}
+              value={password}
+              onChange={(e) => {
+                setPassword(e.target.value);
+                setError("");
+              }}
+              className={`px-4 py-3 rounded-md bg-[#1e1e1e] text-white placeholder-gray-400 border ${
+                error ? "border-red-700" : "border-transparent"
+              } focus:outline-none focus:ring-2 focus:ring-cyan-500`}
+            />
+          )}
+
           <button
             type="submit"
             className="bg-cyan-600 hover:bg-cyan-700 transition-all duration-200 text-white py-3 rounded-md font-semibold disabled:opacity-50"

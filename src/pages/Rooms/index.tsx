@@ -33,6 +33,8 @@ export default function Rooms() {
     checkIfRooms() && selectedRoom !== null ? rooms[selectedRoom].id : "";
   const getRoomName = () =>
     checkIfRooms() && selectedRoom !== null ? rooms[selectedRoom].name : "";
+  const hasPassword = () =>
+    checkIfRooms() && selectedRoom !== null && !!rooms[selectedRoom].password;
 
   return (
     <div className="flex flex-col items-center gap-8  text-white min-w-[600px] justify-center">
@@ -80,7 +82,11 @@ export default function Rooms() {
       <div className="flex gap-4 mt-6">
         <CreateRoom />
         {checkIfRooms() && selectedRoom !== null && (
-          <JoinRoom roomId={getRoomId()} roomName={getRoomName()} />
+          <JoinRoom
+            roomId={getRoomId()}
+            roomName={getRoomName()}
+            hasPassword={hasPassword()}
+          />
         )}
       </div>
     </div>
