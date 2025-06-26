@@ -19,20 +19,21 @@ jobs:
       - name: Setup SSH
         uses: webfactory/ssh-agent@v0.7.0
         with:
-          ssh-private-key: ${{ secrets.AWS_KEY }}
+          ssh-private-key: ${{ secrets.JEROBAS_KEY }}
 
       - name: Remove path
         run: |
-          ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.AWS_HOST }} "rm -rf /home/ubuntu/lopoly-fe/* /home/ubuntu/lopoly-fe/.* 2>/dev/null"
+          ssh -o StrictHostKeyChecking=no -p 2222 ${{secrets.JEROBAS_USER }}@${{ secrets.JEROBAS_HOST }} "rm -rf /home/${{secrets.JEROBAS_USER }}/repos/lopoly-fe/* /home/${{secrets.JEROBAS_USER }}/repos/lopoly-fe/.* 2>/dev/null"
 
-      - name: Use Node.js 22.9.0
+      - name: Use Node.js 22
         uses: actions/setup-node@v4
         with:
-          node-version: 22.9.0
+          node-version: 22
 
       - name: Create .env file
         run: echo "${{ secrets.ENV_FILE_LOPOLY_FE }}" > .env
-          
+          cat .env
+
       - name: Install and build locally
         run: |
           npm install
@@ -40,6 +41,6 @@ jobs:
 
       - name: Copy to EC2
         run: |
-         rsync -avz --delete \
-          -e "ssh -o StrictHostKeyChecking=no" \
-          ./dist/ ubuntu@${{ secrets.AWS_HOST }}:/home/ubuntu/lopoly-fe/
+          rsync -avz --delete \
+           -e "ssh -o StrictHostKeyChecking=no" \
+           ./dist/ ${{secrets.JEROBAS_USER}}@${{ secrets.JEROBAS_HOST }}:/home/${{secrets.JEROBAS_USER}}/repos/lopoly-fe/
