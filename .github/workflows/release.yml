@@ -32,7 +32,6 @@ jobs:
 
       - name: Create .env file
         run: echo "${{ secrets.ENV_FILE_LOPOLY_FE }}" > .env
-          cat .env
 
       - name: Install and build locally
         run: |
@@ -42,5 +41,5 @@ jobs:
       - name: Copy to EC2
         run: |
           rsync -avz --delete \
-           -e "ssh -o StrictHostKeyChecking=no" \
-           ./dist/ ${{secrets.JEROBAS_USER}}@${{ secrets.JEROBAS_HOST }}:/home/${{secrets.JEROBAS_USER}}/repos/lopoly-fe/
+           -e "ssh -o StrictHostKeyChecking=no -p 2222" \
+           .env ${{secrets.JEROBAS_USER}}@${{ secrets.JEROBAS_HOST }}:/home/${{secrets.JEROBAS_USER}}/repos/lopoly-fe/
